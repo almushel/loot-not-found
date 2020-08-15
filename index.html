@@ -1,41 +1,133 @@
 <html>
-    <head>
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-            }
-        </style>
-        <script>
-            let canvas, ctx, w, h;
 
-            this.onload = () => {
-                canvas = document.getElementById('canvas');
-                ctx = canvas.getContext('2d');
+<head>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+		}
+	</style>
+	<script>
+		class Vector2 {
+			constructor(x, y) {
+				this.x = x;
+				this.y = y;
+			}
 
-                canvas.width = w = window.innerWidth;
-                canvas.height = h = window.innerHeight;
-                
-                window.addEventListener('resize', resizeCanvas);
-	            window.addEventListener('orientationchange', resizeCanvas);
-                
-                draw();
-            }
+			add (vector) {
+				return new Vector2(this.x + vector.x, this.y + vector.y);
+			}
 
-            function draw() {
-                ctx.fillStyle = 'black';
-                ctx.fillRect(0,0, w,h);
-            }
+			subtract (vector) {
+				return new Vector2(this.x - vector.x, this.y - vector.y);
+			}
 
-            function resizeCanvas(e) {
-                canvas.width = w = window.innerWidth;
-                canvas.height = h = window.innerHeight;
-                draw();
-            }
+			multiply (scalar) {
+				if (scalar === 0) return new Vector2(0, 0);
+				return new Vector2(this.x * scalar, this.y * scalar);
+			}
 
-        </script>
-    </head>
-    <body>
-        <canvas id="canvas"></canvas>
-    </body>
+			divide (scalar) {
+				if (scalar === 0) return new Vector2(0, 0);
+				return new Vector2(this.x / scalar, this.y / scalar);
+			}
+
+			rotate(angle) {
+				let x = Math.cos(this.x) - Math.sin(this.y), y = Math.sin(this.x) + Math.sin(this.y);
+				return new Vector2(x, y);
+			}
+
+			dotProduct(vector, normalized) {
+				let v1 = normalized ? this : this.normalize();
+				let v2 = normalized ? vector : vector.normalize();
+
+				return v1.x * v2.x + v1.y * v2.y
+			}
+
+			normalize() {
+				let magnitude = Math.hypot(this.x, this.y);
+
+				return this.divide(magnitude);
+			}
+
+			get length() {
+				return Math.hypot(this.x, this.y);
+			}
+
+			set length(scalar) {
+				if (scalar <= 0) {
+					this.x = this.y = 0;
+				} else {
+					let nv = this.normalize().multiply(scalar);
+					this.x = nv.x;
+					this.y = nv.y;
+				}
+			}
+		}
+		
+		let canvas, ctx, w, h;
+
+		let player = {
+			color: 'green',
+			size: 10,
+			position: new Vector2(0, 0),
+			rotation: new Vector2(0, 1),
+			velocity: new Vector2(15, 8),
+			friction: 0.1,
+			collider: {type: 'circle', width: 10},
+			draw() {
+				ctx.fillStyle = this.color;
+				ctx.beginPath()
+				ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+				ctx.fill();
+			},
+			get x() {return this.position.x},
+			get y() {return this.position.y},
+		}
+
+		this.onload = () => {
+			canvas = document.getElementById('canvas');
+			ctx = canvas.getContext('2d');
+
+			canvas.width = w = window.innerWidth;
+			canvas.height = h = window.innerHeight;
+
+			window.addEventListener('resize', resizeCanvas);
+			window.addEventListener('orientationchange', resizeCanvas);
+
+			draw();
+			setInterval(update, 1000/60);
+		}
+
+		function update() {
+			physicsUpdate();
+			draw();
+		}
+
+		function physicsUpdate() {
+			player.position = player.position.add(player.velocity);
+			console.log(player.velocity.length);
+			console.log(player.friction);
+			player.velocity.length -= player.friction;
+		}
+
+		function draw() {
+			ctx.fillStyle = 'rgb(50, 50, 150)';
+			ctx.fillRect(0, 0, w, h);
+			player.draw();
+		}
+
+		function resizeCanvas(e) {
+			canvas.width = w = window.innerWidth;
+			canvas.height = h = window.innerHeight;
+			draw();
+		}
+
+	</script>
+</head>
+
+<body>
+	<canvas id="canvas"></canvas>
+</body>
+
 </html>

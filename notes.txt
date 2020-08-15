@@ -2,6 +2,9 @@ JS13k 2020
 ---------------------------------------------->
 Theme: 404
 ---------------------------------------------->
+Title Ideas:
+Loot Not Found. (Cuz you stole them)
+---------------------------------------------->
 Premise: 
 Top down, physics-based sandbox game.
 Thief?
