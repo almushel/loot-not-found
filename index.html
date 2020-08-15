@@ -1,0 +1,41 @@
+<html>
+    <head>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+            }
+        </style>
+        <script>
+            let canvas, ctx, w, h;
+
+            this.onload = () => {
+                canvas = document.getElementById('canvas');
+                ctx = canvas.getContext('2d');
+
+                canvas.width = w = window.innerWidth;
+                canvas.height = h = window.innerHeight;
+                
+                window.addEventListener('resize', resizeCanvas);
+	            window.addEventListener('orientationchange', resizeCanvas);
+                
+                draw();
+            }
+
+            function draw() {
+                ctx.fillStyle = 'black';
+                ctx.fillRect(0,0, w,h);
+            }
+
+            function resizeCanvas(e) {
+                canvas.width = w = window.innerWidth;
+                canvas.height = h = window.innerHeight;
+                draw();
+            }
+
+        </script>
+    </head>
+    <body>
+        <canvas id="canvas"></canvas>
+    </body>
+</html>

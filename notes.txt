@@ -1,0 +1,18 @@
+JS13k 2020
+---------------------------------------------->
+Theme: 404
+---------------------------------------------->
+Premise: 
+Top down, physics-based sandbox game.
+Thief?
+
+---------------------------------------------->
+Features:
+Procedural level generation
+Destructible walls
+Elemental systems (fire, water, electricity, acid)
+
+---------------------------------------------->
+Game objective/win condition: 
+Steal 404 gold piece worth of loot;
+Cause 404 dollars worth of nonviolent property damage.
