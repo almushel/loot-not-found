@@ -8,32 +8,35 @@
 		}
 	</style>
 	<script>
+		const GRID_SIZE = 16;
+		let canvas, ctx, w, h;
+		
 		class Vector2 {
 			constructor(x, y) {
 				this.x = x;
 				this.y = y;
 			}
 
-			add (vector) {
+			add(vector) {
 				return new Vector2(this.x + vector.x, this.y + vector.y);
 			}
 
-			subtract (vector) {
+			subtract(vector) {
 				return new Vector2(this.x - vector.x, this.y - vector.y);
 			}
 
-			multiply (scalar) {
+			multiply(scalar) {
 				if (scalar === 0) return new Vector2(0, 0);
 				return new Vector2(this.x * scalar, this.y * scalar);
 			}
 
-			divide (scalar) {
+			divide(scalar) {
 				if (scalar === 0) return new Vector2(0, 0);
 				return new Vector2(this.x / scalar, this.y / scalar);
 			}
 
 			rotate(angle) {
-				let x = Math.cos(this.x) - Math.sin(this.y), y = Math.sin(this.x) + Math.sin(this.y);
+				let x = Math.cos(this.x) - Math.sin(this.y), y = Math.sin(this.x) + Math.cos(this.y);
 				return new Vector2(x, y);
 			}
 
@@ -64,25 +67,138 @@
 				}
 			}
 		}
-		
-		let canvas, ctx, w, h;
 
 		let player = {
 			color: 'green',
 			size: 10,
-			position: new Vector2(0, 0),
+			position: new Vector2(GRID_SIZE * 2, GRID_SIZE * 2),
 			rotation: new Vector2(0, 1),
-			velocity: new Vector2(15, 8),
-			friction: 0.1,
-			collider: {type: 'circle', width: 10},
+			velocity: new Vector2(0, 0),
+			acceleration: .4,
+			friction: 0.96,
+			collider: { type: 'circle', radius: 10, physics: 'dynamic',
+						get x() {return player.x}, get y() { return player.y},
+						},
 			draw() {
 				ctx.fillStyle = this.color;
 				ctx.beginPath()
 				ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
 				ctx.fill();
 			},
-			get x() {return this.position.x},
-			get y() {return this.position.y},
+			get x() { return this.position.x },
+			get y() { return this.position.y },
+		}
+
+
+		let currentLevel = {
+			grid: [],
+			width: 0,
+			height: 0,
+		};
+		//collider types: circle, rect, poly
+
+		function generateLevel(width, height) {
+			let newLevel = [];
+			newLevel.fill(0, width * height);
+			for (let y = 0; y < height; y++) {
+				for (let x = 0; x < width; x++) {
+					if (y === 0 || x == 0 || y == height - 1 || x == width - 1) {
+						newLevel[y * width + x] = 1;
+					}
+				}
+			}
+
+			return {
+				grid: newLevel,
+				width: width,
+				height: height,
+			};
+		}
+
+		function checkCollision(col1, col2) {
+			let collision = {};
+			if (col1.type == 'circle') {
+				switch(col2.type) {
+					case 'circle':
+						collision = circleOverlap(col1, col2);
+						break;
+					case 'rect':
+						collision = circleRectOverlap(col1, col2);
+						break;
+					default:
+						break;
+				}
+			} else if (col1.type = 'rect') {
+				switch(col2.type) {
+					case 'circle':
+						collision = circleRectOverlap(col1, col2);
+						break;
+					case 'rect':
+						collision = aabbOverlap(col1, col2);
+						break;
+					default:
+						break;
+				}
+			}
+
+			return collision;
+		}
+
+		function circleOverlap(circle1, circle2) {
+			let distX = circle1.x - circle2.x;
+			let distY = circle1.y - circle2.y;
+			let dist = Math.hypot(distX, distY);
+			let width = circle1.radius + circle2.radius;
+			if (dist <= width) {
+				return {hit: true, overlap: {x: distX, y: distY} }
+			}
+
+			return {hit: false, overlap: 0}
+		}
+
+		function circleRectOverlap(circle, rect) {
+			let distX = circle.x - rect.x;
+			let distY = circle.y - rect.y;
+			let width = rect.width/2 + circle.radius, height = rect.height/2 + circle.radius;
+
+			if (Math.abs(distX) <= width && Math.abs(distY) <= height) {
+				return {hit: true, overlap: new Vector2(width - Math.abs(distX), height - Math.abs(distY)) };
+			}
+
+			return {hit: false, overlap: 0};
+		}
+
+		function aabbOverlap(rect1, rect2) {
+			let distX = rect1.x - rect2.x;
+			let distY = rect1.y - rect2.y;
+
+			if (distX <= (rect1.width + rect2.width) / 2 && distY <= (rect1.height + rect2.height) / 2) {
+				return {hit: true, overlap: {x: distX, y: distY} };
+			}
+
+			return {hit: false, overlap: 0};
+		}
+
+		let controls = {
+			u: 0, d: 0, l: 0, r: 0, //directions
+			interact: 0,//Interact with world object
+			use: 0, //Use held item
+		}
+
+		this.addEventListener('keydown', (e) => {
+			setControl(e.which, 1);
+		})
+		this.addEventListener('keyup', (e) => {
+			setControl(e.which, 0);
+		})
+
+		function setControl(key, to) {
+			if (key == 65 || key == 37) { controls.l = to } //a or left
+			if (key == 68 || key == 39) { controls.r = to } //d or right
+			if (key == 87 || key == 38) { controls.u = to } //w or up
+			if (key == 83 || key == 40) { controls.d = to } //s or down
+			if (key == 32) { controls.interact = 1 } //space
+			if (key == 17) { controls.use = 1 } //control
 		}
 
 		this.onload = () => {
@@ -95,8 +211,9 @@
 			window.addEventListener('resize', resizeCanvas);
 			window.addEventListener('orientationchange', resizeCanvas);
 
+			currentLevel = generateLevel(Math.floor(w / GRID_SIZE), Math.floor(h / GRID_SIZE));
 			draw();
-			setInterval(update, 1000/60);
+			setInterval(update, 1000 / 60);
 		}
 
 		function update() {
@@ -104,16 +221,56 @@
 			draw();
 		}
 
+		function control() {
+			let av = new Vector2(0, 0);
+			if (controls.l) av.x -= 1;
+			if (controls.r) av.x += 1;
+			if (controls.u) av.y -= 1;
+			if (controls.d) av.y += 1;
+
+			return av.normalize();
+		}
+
 		function physicsUpdate() {
+			let cv = control();
+			player.velocity = player.velocity.add(cv.multiply(player.acceleration));
 			player.position = player.position.add(player.velocity);
-			console.log(player.velocity.length);
-			console.log(player.friction);
-			player.velocity.length -= player.friction;
+			player.velocity.length *= player.friction;
+		
+			let width = currentLevel.width, height = currentLevel.height;
+			for (let y = 0; y < height; y++) {
+				for (let x = 0; x < width; x++) {
+					let tileType = currentLevel.grid[y * width + x];
+					if (!tileType) continue;
+
+					let tileRect = {x: (x * GRID_SIZE) + (GRID_SIZE/2), y: (y * GRID_SIZE) + (GRID_SIZE/2), 
+									type: 'rect', width: GRID_SIZE, height: GRID_SIZE};
+					let collision = checkCollision(player.collider, tileRect);
+					if (collision.hit) {
+						let correction = new Vector2(player.x - tileRect.x, player.y - tileRect.y)
+						correction = correction.normalize();
+						correction = correction.multiply(player.velocity.length / 2);
+						player.position = player.position.add(correction);
+						player.velocity = player.velocity.add(correction);
+					}
+				}
+			}
 		}
 
 		function draw() {
-			ctx.fillStyle = 'rgb(50, 50, 150)';
+			ctx.fillStyle = 'rgb(25, 25, 75)';
 			ctx.fillRect(0, 0, w, h);
+			
+			ctx.fillStyle = 'dimgrey'
+			let width = currentLevel.width, height = currentLevel.height;
+			for (let y = 0; y < height; y++) {
+				for (let x = 0; x < width; x++) {
+					let tileType = currentLevel.grid[y * width + x];
+					
+					if (tileType) ctx.fillRect(x * GRID_SIZE,y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+				}
+			}
+
 			player.draw();
 		}
 
