@@ -70,14 +70,14 @@
 
 		let player = {
 			color: 'green',
-			size: 10,
+			size: 16,
 			position: new Vector2(GRID_SIZE * 2, GRID_SIZE * 2),
 			rotation: new Vector2(0, 1),
 			velocity: new Vector2(0, 0),
 			acceleration: .4,
 			friction: 0.96,
-			collider: { type: 'circle', radius: 10, physics: 'dynamic',
-						get x() {return player.x}, get y() { return player.y},
+			collider: { type: 'circle', physics: 'dynamic',
+						get radius() {return player.size}, get x() {return player.x}, get y() { return player.y},
 						},
 			draw() {
 				ctx.fillStyle = this.color;
@@ -100,11 +100,15 @@
 		function generateLevel(width, height) {
 			let newLevel = [];
 			newLevel.fill(0, width * height);
+			let index = 0;
 			for (let y = 0; y < height; y++) {
 				for (let x = 0; x < width; x++) {
 					if (y === 0 || x == 0 || y == height - 1 || x == width - 1) {
-						newLevel[y * width + x] = 1;
+						newLevel[index] = 1;
+					} else if ( (y % 2 == 0) && (x == y * 2 || Math.abs(x - width + 1) == y * 2) ) {
+						newLevel[index] = 1;
 					}
+					index++;
 				}
 			}
 
@@ -247,11 +251,16 @@
 									type: 'rect', width: GRID_SIZE, height: GRID_SIZE};
 					let collision = checkCollision(player.collider, tileRect);
 					if (collision.hit) {
-						let correction = new Vector2(player.x - tileRect.x, player.y - tileRect.y)
+						let correction  = new Vector2(player.x - tileRect.x, player.y - tileRect.y);
+						if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
+						else correction.x = 0;
+
 						correction = correction.normalize();
-						correction = correction.multiply(player.velocity.length / 2);
+						correction.x *= collision.overlap.x;
+						correction.y *= collision.overlap.y;
 						player.position = player.position.add(correction);
 						player.velocity = player.velocity.add(correction);
+						player.velocity = player.velocity.multiply(player.friction);
 					}
 				}
 			}
@@ -261,7 +270,7 @@
 			ctx.fillStyle = 'rgb(25, 25, 75)';
 			ctx.fillRect(0, 0, w, h);
 			
-			ctx.fillStyle = 'dimgrey'
+			ctx.fillStyle = 'saddlebrown';
 			let width = currentLevel.width, height = currentLevel.height;
 			for (let y = 0; y < height; y++) {
 				for (let x = 0; x < width; x++) {
