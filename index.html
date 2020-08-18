@@ -11,6 +11,43 @@
 		const GRID_SIZE = 16;
 		let canvas, ctx, w, h;
 		
+		const tileTypes = [
+			{name: 'ground', flammable: false, conductive: false, durability: Infinity},	//0
+			{name: 'concrete', flammable: false, conductive: false, durability: 100},		//1
+			{name: 'wood', flammable: true, conductive: false, durability: 50},				//2
+			{name: 'metal', flammable: false, conductive: true, durability: 100},			//3
+			{name: 'glass', flammable: false, conductive: false,durability: 25},			//4
+		];
+
+		const tileColors = ['rgb(30,70,30)', 'rgb(80,80,80)', 'saddlebrown', 'dimgrey', 'skyblue'];
+
+		const effectTypes = [
+			{name: 'fire'}, 
+			{name: 'water'}, 
+			{name: 'steam'}, 
+			{name: 'electricity'}, 
+			{name: 'gas'}
+		];
+
+		/*
+			Element tiles:
+				-1 hp per tick
+				1 hp elemental damage to adjacent tiles per tick
+					Only damage weak tiles (i.e. fire damages wood, but not concrete)
+					Tiles inherit elemental effect at certain HP threshold (50%?)
+					If adjacent tile already has elemental effect, check for interactions ()
+				
+		*/
+
+		class ElementEffect {
+			constructor (typeDef, tileIndex){
+				this.type = typeDef.name;
+				this.tile = tileIndex;
+				this.lifeTime = 300;
+			}
+		}
+		
+		
 		class Vector2 {
 			constructor(x, y) {
 				this.x = x;
@@ -90,33 +127,46 @@
 		}
 
 
-		let currentLevel = {
-			grid: [],
-			width: 0,
-			height: 0,
-		};
+
+		class GameLevel {
+			_grid = [];
+			_tileHP = [];
+			effects = [];
+			width = 0;
+			height = 0;
+		
+			get grid() {return this._grid;}
+			set grid(newGrid) {
+				this._grid = newGrid;
+				this._tileHP.length = this._grid.length;
+				this._tileHP.fill(100);
+			}
+		}
+		
 		//collider types: circle, rect, poly
 
 		function generateLevel(width, height) {
-			let newLevel = [];
-			newLevel.fill(0, width * height);
+			let newGrid = [];
+			newGrid.length = width * height;
+			newGrid.fill(0);
 			let index = 0;
 			for (let y = 0; y < height; y++) {
 				for (let x = 0; x < width; x++) {
-					if (y === 0 || x == 0 || y == height - 1 || x == width - 1) {
-						newLevel[index] = 1;
-					} else if ( (y % 2 == 0) && (x == y * 2 || Math.abs(x - width + 1) == y * 2) ) {
-						newLevel[index] = 1;
-					}
+					if (y < 4 || y > height - 4 || x < 4 || x > width - 4);
+					else if (Math.abs((height/2) - y) <= 5) newGrid[index] = 2;
+					else if (x % 8 == 0) newGrid[index] = 1;
+					else newGrid[index] = 2;
 					index++;
 				}
 			}
+			
+			console.log(newGrid[843]);
+			let newLevel = new GameLevel();
+			newLevel.width = width;
+			newLevel.height = height;
+			newLevel.grid = newGrid;
 
-			return {
-				grid: newLevel,
-				width: width,
-				height: height,
-			};
+			return newLevel;
 		}
 
 		function checkCollision(col1, col2) {
@@ -217,6 +267,9 @@
 			window.addEventListener('orientationchange', resizeCanvas);
 
 			currentLevel = generateLevel(Math.floor(w / GRID_SIZE), Math.floor(h / GRID_SIZE));
+			currentLevel.effects.push(
+				new ElementEffect(effectTypes[0], Math.ceil(currentLevel.grid.length/2))
+				);
 			draw();
 			setInterval(update, 1000 / 60);
 		}
@@ -236,7 +289,37 @@
 			return av.normalize();
 		}
 
+		function updateElements() {
+			for (let e = currentLevel.effects.length-1; e >= 0; e--) {
+				let element = currentLevel.effects[e];
+				if (element.lifeTime <= 0 || currentLevel.grid[element.tile] == 0)  {
+					currentLevel.effects.splice(e, 1);
+					continue;
+				}
+				if (currentLevel.grid[element.tile]) {
+					currentLevel._tileHP[element.tile] -= Math.random();
+					if (currentLevel._tileHP[element.tile] <= 0) currentLevel.grid[element.tile] = 0;
+				}
+
+				for (let y = -1; y < 2; y++) {
+					for (let x = -1; x < 2; x++) {
+						let checkTile = element.tile + (currentLevel.width * y) + x;
+						if (checkTile < 0 || checkTile > currentLevel.grid.length) continue;
+						if (currentLevel.effects.findIndex((e) => e.tile === checkTile) < 0) {
+							let tileType = currentLevel.grid[checkTile];
+							if (tileTypes[tileType].flammable && Math.random() > 0.98) {
+								currentLevel.effects.push(new ElementEffect(effectTypes[0], checkTile));
+							}
+						}
+					}
+				}
+
+				element.lifeTime--;
+			}
+		}
+
 		function physicsUpdate() {
+			updateElements();
 			let cv = control();
 			player.velocity = player.velocity.add(cv.multiply(player.acceleration));
 			player.position = player.position.add(player.velocity);
@@ -268,20 +351,34 @@
 		}
 
 		function draw() {
-			ctx.fillStyle = 'rgb(25, 25, 75)';
+			ctx.fillStyle = tileColors[0];
 			ctx.fillRect(0, 0, w, h);
-			
-			ctx.fillStyle = 'saddlebrown';
+		
+			drawGrid();
+			player.draw();
+			drawElements();
+		}
+
+		function drawElements() {
+			ctx.globalAlpha = 0.4;
+			ctx.fillStyle = 'red';
+			for (let effect of currentLevel.effects) {
+				let x = effect.tile % currentLevel.width;
+				let y = (effect.tile - x) / currentLevel.width;
+				ctx.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+			}
+			ctx.globalAlpha = 1;
+		}
+
+		function drawGrid() {
 			let width = currentLevel.width, height = currentLevel.height;
 			for (let y = 0; y < height; y++) {
 				for (let x = 0; x < width; x++) {
 					let tileType = currentLevel.grid[y * width + x];
-					
+					ctx.fillStyle = tileColors[tileType];		
 					if (tileType) ctx.fillRect(x * GRID_SIZE,y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
 				}
 			}
-
-			player.draw();
 		}
 
 		function resizeCanvas(e) {
