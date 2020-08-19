@@ -130,8 +130,6 @@
 			get y() { return this.position.y },
 		}
 
-
-
 		class GameLevel {
 			_grid = [];
 			_tileHP = [];
@@ -171,6 +169,26 @@
 			newLevel.grid = newGrid;
 
 			return newLevel;
+		}
+
+		function tilesNearPosition(position) {
+			let x = Math.floor(position.x / GRID_SIZE);
+			let y = Math.floor(position.y / GRID_SIZE);
+			let index = Math.floor(y * currentLevel.width + x);
+			return tilesNearIndex(index);
+		}
+
+		function tilesNearIndex(index) {
+			let tiles = [];
+			for (let y = -1; y < 2; y++) {
+				for (let x = -1; x < 2; x++) {
+					let checkTile = index + (currentLevel.width * y) + x;
+					//NOTE: Also need check for edges
+					if (checkTile < 0 || checkTile > currentLevel.grid.length) continue;
+					tiles.push(checkTile);
+				}
+			}
+			return tiles;
 		}
 
 		function checkCollision(col1, col2) {
@@ -334,9 +352,11 @@
 			player.velocity.length *= player.friction;
 		
 			let width = currentLevel.width, height = currentLevel.height;
-			for (let y = 0; y < height; y++) {
-				for (let x = 0; x < width; x++) {
-					let tileType = currentLevel.grid[y * width + x];
+			let nearTiles = tilesNearPosition(player);
+				for (tile of nearTiles) {
+					let x = tile % width;
+					let y = Math.floor(tile / width);
+					let tileType = currentLevel.grid[tile];
 					if (!tileType) continue;
 
 					let tileRect = {x: (x * GRID_SIZE) + (GRID_SIZE/2), y: (y * GRID_SIZE) + (GRID_SIZE/2), 
@@ -355,7 +375,6 @@
 						player.velocity = player.velocity.multiply(player.friction);
 					}
 				}
-			}
 		}
 
 		function draw() {
@@ -368,7 +387,7 @@
 		}
 
 		function drawElements() {
-			ctx.globalAlpha = 0.4;
+			//ctx.globalAlpha = 0.4;
 			for (let effect of currentLevel.effects) {
 				ctx.fillStyle = effectColors[effect.type];
 				let x = effect.tile % currentLevel.width;
