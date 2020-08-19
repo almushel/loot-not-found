@@ -296,8 +296,10 @@
 		function updateElements() {
 			for (let e = currentLevel.effects.length-1; e >= 0; e--) {
 				let element = currentLevel.effects[e];
-				if (element.lifeTime <= 0)  {
+				if (element.lifeTime <= 0 || currentLevel._tileHP[element.tile] <= 0)  {
+					currentLevel._tileHP[element.tile] = 100;
 					currentLevel.effects.splice(e, 1);
+					
 					let deathEffect = effectTypes[element.type].ondeath
 					if (deathEffect) currentLevel.effects.push(new ElementEffect(deathEffect, element.tile));
 					continue;
