@@ -12,22 +12,25 @@
 		let canvas, ctx, w, h;
 		
 		const tileTypes = [
-			{name: 'ground', flammable: false, conductive: false, durability: Infinity},	//0
-			{name: 'concrete', flammable: false, conductive: false, durability: 100},		//1
-			{name: 'wood', flammable: true, conductive: false, durability: 50},				//2
-			{name: 'metal', flammable: false, conductive: true, durability: 100},			//3
-			{name: 'glass', flammable: false, conductive: false,durability: 25},			//4
+			{name: 'ground', durability: Infinity, effects: new Set([2, 4, 5, 6]),},	//0 ground
+			{name: 'concrete', durability: 100, effects: new Set([]),},					//1 concrete
+			{name: 'wood', durability: 50, effects: new Set([0]),},						//2 wood
+			{name: 'metal', durability: 100, effects: new Set([2, 3]),},				//3 metal
+			{name: 'glass', durability: 25, effects: new Set([]),},						//4 glass
 		];
 
-		const tileColors = ['rgb(30,70,30)', 'rgb(80,80,80)', 'saddlebrown', 'dimgrey', 'skyblue'];
+		const tileColors = ['#204620', '#505050', 'saddlebrown', 'dimgrey', 'skyblue'];
 
 		const effectTypes = [
-			{name: 'fire'}, 
-			{name: 'water'}, 
-			{name: 'steam'}, 
-			{name: 'electricity'}, 
-			{name: 'gas'}
+			{name: 'fire', ondeath: 3,},			//0 fire
+			{name: 'water'}, 		//1 water
+			{name: 'electricity'},	//2 electricity
+			{name: 'smoke'},  		//3 smoke
+			{name: 'gas'},			//4 gas
+			{name: 'steam'},		//5 steam
 		];
+
+		const effectColors = ['red', 'blue', 'yellow', '#090909', 'green', 'powderblue'];
 
 		/*
 			Element tiles:
@@ -35,13 +38,14 @@
 				1 hp elemental damage to adjacent tiles per tick
 					Only damage weak tiles (i.e. fire damages wood, but not concrete)
 					Tiles inherit elemental effect at certain HP threshold (50%?)
-					If adjacent tile already has elemental effect, check for interactions ()
+					If adjacent tile already has elemental effect, check for interactions (electricity + water)
+					If adjacent tile is empty, check for fill effect (fire produces smoke)
 				
 		*/
 
 		class ElementEffect {
-			constructor (typeDef, tileIndex){
-				this.type = typeDef.name;
+			constructor (type, tileIndex){
+				this.type = type;
 				this.tile = tileIndex;
 				this.lifeTime = 300;
 			}
@@ -268,7 +272,7 @@
 
 			currentLevel = generateLevel(Math.floor(w / GRID_SIZE), Math.floor(h / GRID_SIZE));
 			currentLevel.effects.push(
-				new ElementEffect(effectTypes[0], Math.ceil(currentLevel.grid.length/2))
+				new ElementEffect(0, Math.ceil(currentLevel.grid.length/2))
 				);
 			draw();
 			setInterval(update, 1000 / 60);
@@ -292,8 +296,10 @@
 		function updateElements() {
 			for (let e = currentLevel.effects.length-1; e >= 0; e--) {
 				let element = currentLevel.effects[e];
-				if (element.lifeTime <= 0 || currentLevel.grid[element.tile] == 0)  {
+				if (element.lifeTime <= 0)  {
 					currentLevel.effects.splice(e, 1);
+					let deathEffect = effectTypes[element.type].ondeath
+					if (deathEffect) currentLevel.effects.push(new ElementEffect(deathEffect, element.tile));
 					continue;
 				}
 				if (currentLevel.grid[element.tile]) {
@@ -307,8 +313,8 @@
 						if (checkTile < 0 || checkTile > currentLevel.grid.length) continue;
 						if (currentLevel.effects.findIndex((e) => e.tile === checkTile) < 0) {
 							let tileType = currentLevel.grid[checkTile];
-							if (tileTypes[tileType].flammable && Math.random() > 0.98) {
-								currentLevel.effects.push(new ElementEffect(effectTypes[0], checkTile));
+							if (tileTypes[tileType].effects.has(element.type) && Math.random() > 0.98) {
+								currentLevel.effects.push(new ElementEffect(0, checkTile));
 							}
 						}
 					}
@@ -361,8 +367,8 @@
 
 		function drawElements() {
 			ctx.globalAlpha = 0.4;
-			ctx.fillStyle = 'red';
 			for (let effect of currentLevel.effects) {
+				ctx.fillStyle = effectColors[effect.type];
 				let x = effect.tile % currentLevel.width;
 				let y = (effect.tile - x) / currentLevel.width;
 				ctx.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
