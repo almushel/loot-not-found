@@ -19,18 +19,18 @@
 			{name: 'glass', durability: 25, effects: new Set([]),},						//4 glass
 		];
 
-		const tileColors = ['#204620', '#505050', 'saddlebrown', 'dimgrey', 'skyblue'];
+		const tileColors = ['#202020', '#505050', '#452b25', '#707070', 'skyblue'];
 
 		const effectTypes = [
-			{name: 'fire', ondeath: 3,},			//0 fire
-			{name: 'water'}, 		//1 water
-			{name: 'electricity'},	//2 electricity
-			{name: 'smoke'},  		//3 smoke
-			{name: 'gas'},			//4 gas
-			{name: 'steam'},		//5 steam
+			{name: 'fire', ondeath: 3,},	//0 fire
+			{name: 'water'}, 				//1 water
+			{name: 'electricity'},			//2 electricity
+			{name: 'smoke'},  				//3 smoke
+			{name: 'gas'},					//4 gas
+			{name: 'steam'},				//5 steam
 		];
 
-		const effectColors = ['red', 'blue', 'yellow', '#090909', 'green', 'powderblue'];
+		const effectColors = ['red', 'skyblue', 'yellow', '#090909', 'green', 'powderblue'];
 
 		/*
 			Element tiles:
@@ -39,18 +39,36 @@
 					Only damage weak tiles (i.e. fire damages wood, but not concrete)
 					Tiles inherit elemental effect at certain HP threshold (50%?)
 					If adjacent tile already has elemental effect, check for interactions (electricity + water)
-					If adjacent tile is empty, check for fill effect (fire produces smoke)
-				
+					If adjacent tile is empty, check for fill effect (fire produces smoke)	
 		*/
 
-		class ElementEffect {
-			constructor (type, tileIndex){
-				this.type = type;
-				this.tile = tileIndex;
-				this.lifeTime = 300;
+		class LevelEffects {
+			constructor(size) {
+				this._stride = 2; /*1: Effect Type, 2: Lifetime */
+				this.grid = [];
+				this.grid.length = size * this._stride;
+				this.grid.fill(-1);
 			}
-		}
-		
+
+			getType(levelIndex) {
+				return this.grid[levelIndex * this._stride];
+			}
+
+			setType(levelIndex, type) {
+				this.grid[levelIndex * this._stride] = type;
+				this.setLifeTime(levelIndex, 300);
+			}
+
+			getLifetime(levelIndex) {
+				return this.grid[levelIndex * this._stride + 1];
+			}
+
+			setLifeTime(levelIndex, value) {
+				this.grid[levelIndex * this._stride + 1] = value;
+			}
+
+			get length() { return this.grid.length; }
+		}		
 		
 		class Vector2 {
 			constructor(x, y) {
@@ -110,7 +128,7 @@
 		}
 
 		let player = {
-			color: 'green',
+			color: '#4060C0',
 			size: 16,
 			position: new Vector2(GRID_SIZE * 2, GRID_SIZE * 2),
 			rotation: new Vector2(0, 1),
@@ -144,8 +162,6 @@
 				this._tileHP.fill(100);
 			}
 		}
-		
-		//collider types: circle, rect, poly
 
 		function generateLevel(width, height) {
 			let newGrid = [];
@@ -162,19 +178,17 @@
 				}
 			}
 			
-			console.log(newGrid[843]);
 			let newLevel = new GameLevel();
 			newLevel.width = width;
 			newLevel.height = height;
 			newLevel.grid = newGrid;
+			newLevel.effects = new LevelEffects(newGrid.length);
 
 			return newLevel;
 		}
 
 		function tilesNearPosition(position) {
-			let x = Math.floor(position.x / GRID_SIZE);
-			let y = Math.floor(position.y / GRID_SIZE);
-			let index = Math.floor(y * currentLevel.width + x);
+			let index = Math.floor(Math.floor(position.y / GRID_SIZE) * currentLevel.width + Math.floor(position.x / GRID_SIZE));
 			return tilesNearIndex(index);
 		}
 
@@ -262,12 +276,8 @@
 			use: 0, //Use held item
 		}
 
-		this.addEventListener('keydown', (e) => {
-			setControl(e.which, 1);
-		})
-		this.addEventListener('keyup', (e) => {
-			setControl(e.which, 0);
-		})
+		this.addEventListener('keydown', (e) => { setControl(e.which, 1); })
+		this.addEventListener('keyup', (e) => { setControl(e.which, 0); })
 
 		function setControl(key, to) {
 			if (key == 65 || key == 37) { controls.l = to } //a or left
@@ -289,10 +299,9 @@
 			window.addEventListener('orientationchange', resizeCanvas);
 
 			currentLevel = generateLevel(Math.floor(w / GRID_SIZE), Math.floor(h / GRID_SIZE));
-			currentLevel.effects.push(
-				new ElementEffect(0, Math.ceil(currentLevel.grid.length/2))
-				);
-			draw();
+			currentLevel.effects.setType(Math.ceil(currentLevel.grid.length/2), 0);
+			player.position.x = currentLevel.width/2 * GRID_SIZE;
+
 			setInterval(update, 1000 / 60);
 		}
 
@@ -312,35 +321,40 @@
 		}
 
 		function updateElements() {
-			for (let e = currentLevel.effects.length-1; e >= 0; e--) {
-				let element = currentLevel.effects[e];
-				if (element.lifeTime <= 0 || currentLevel._tileHP[element.tile] <= 0)  {
-					currentLevel._tileHP[element.tile] = 100;
-					currentLevel.effects.splice(e, 1);
-					
-					let deathEffect = effectTypes[element.type].ondeath
-					if (deathEffect) currentLevel.effects.push(new ElementEffect(deathEffect, element.tile));
+			let effects = currentLevel.effects;
+			for (let e = currentLevel.grid.length-1; e >= 0; e--) {
+				let type = effects.getType(e);
+				let lifeTime = effects.getLifetime(e);
+				if (type < 0) continue; //No effect in this tile
+
+				if (lifeTime <= 0 || currentLevel._tileHP[e] <= 0)  {
+					currentLevel._tileHP[e] = 100;
+					let deathEffect = effectTypes[type].ondeath
+					if (deathEffect) effects.setType(e, deathEffect);
+					else effects.setType(e, -1);
 					continue;
 				}
-				if (currentLevel.grid[element.tile]) {
-					currentLevel._tileHP[element.tile] -= Math.random();
-					if (currentLevel._tileHP[element.tile] <= 0) currentLevel.grid[element.tile] = 0;
+
+				if (currentLevel.grid[e]) {
+					currentLevel._tileHP[e] -= Math.random();
+					if (currentLevel._tileHP[e] <= 0) currentLevel.grid[e] = 0;
 				}
 
 				for (let y = -1; y < 2; y++) {
 					for (let x = -1; x < 2; x++) {
-						let checkTile = element.tile + (currentLevel.width * y) + x;
+						if (x == 0 && y == 0) continue;
+						let checkTile = e + (currentLevel.width * y) + x;
 						if (checkTile < 0 || checkTile > currentLevel.grid.length) continue;
-						if (currentLevel.effects.findIndex((e) => e.tile === checkTile) < 0) {
+						if (effects.getType(checkTile) < 0) {
 							let tileType = currentLevel.grid[checkTile];
-							if (tileTypes[tileType].effects.has(element.type) && Math.random() > 0.98) {
-								currentLevel.effects.push(new ElementEffect(0, checkTile));
+							if (tileTypes[tileType].effects.has(type) && Math.random() > 0.98) {
+								effects.setType(checkTile, type)
 							}
 						}
 					}
 				}
 
-				element.lifeTime--;
+				effects.setLifeTime(e, lifeTime - Math.random());
 			}
 		}
 
@@ -353,45 +367,48 @@
 		
 			let width = currentLevel.width, height = currentLevel.height;
 			let nearTiles = tilesNearPosition(player);
-				for (tile of nearTiles) {
-					let x = tile % width;
-					let y = Math.floor(tile / width);
-					let tileType = currentLevel.grid[tile];
-					if (!tileType) continue;
+			for (tile of nearTiles) {
+				let x = tile % width;
+				let y = Math.floor(tile / width);
+				let tileType = currentLevel.grid[tile];
+				if (!tileType) continue;
 
-					let tileRect = {x: (x * GRID_SIZE) + (GRID_SIZE/2), y: (y * GRID_SIZE) + (GRID_SIZE/2), 
-									type: 'rect', width: GRID_SIZE, height: GRID_SIZE};
-					let collision = checkCollision(player.collider, tileRect);
-					if (collision.hit) {
-						let correction  = new Vector2(player.x - tileRect.x, player.y - tileRect.y);
-						if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
-						else correction.x = 0;
+				let tileRect = {
+					x: (x * GRID_SIZE) + (GRID_SIZE / 2), y: (y * GRID_SIZE) + (GRID_SIZE / 2),
+					type: 'rect', width: GRID_SIZE, height: GRID_SIZE
+				};
+				let collision = checkCollision(player.collider, tileRect);
+				if (collision.hit) {
+					let correction = new Vector2(player.x - tileRect.x, player.y - tileRect.y);
+					if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
+					else correction.x = 0;
 
-						correction = correction.normalize();
-						correction.x *= collision.overlap.x;
-						correction.y *= collision.overlap.y;
-						player.position = player.position.add(correction);
-						player.velocity = player.velocity.add(correction);
-						player.velocity = player.velocity.multiply(player.friction);
-					}
+					correction = correction.normalize();
+					correction.x *= collision.overlap.x;
+					correction.y *= collision.overlap.y;
+					player.position = player.position.add(correction);
+					player.velocity = player.velocity.add(correction);
+					player.velocity = player.velocity.multiply(player.friction);
 				}
+			}
 		}
 
 		function draw() {
 			ctx.fillStyle = tileColors[0];
 			ctx.fillRect(0, 0, w, h);
-		
 			drawGrid();
 			player.draw();
 			drawElements();
 		}
 
 		function drawElements() {
-			//ctx.globalAlpha = 0.4;
-			for (let effect of currentLevel.effects) {
-				ctx.fillStyle = effectColors[effect.type];
-				let x = effect.tile % currentLevel.width;
-				let y = (effect.tile - x) / currentLevel.width;
+			ctx.globalAlpha = 0.4;
+			let effects = currentLevel.effects;
+			for (let e = 0; e < currentLevel.grid.length; e++) {
+				let type = effects.getType(e);
+				if (type < 0) continue;
+				ctx.fillStyle = effectColors[type];
+				let x = e % currentLevel.width, y = (e - x) / currentLevel.width;
 				ctx.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
 			}
 			ctx.globalAlpha = 1;
@@ -399,11 +416,13 @@
 
 		function drawGrid() {
 			let width = currentLevel.width, height = currentLevel.height;
+			let index = 0;
 			for (let y = 0; y < height; y++) {
 				for (let x = 0; x < width; x++) {
-					let tileType = currentLevel.grid[y * width + x];
-					ctx.fillStyle = tileColors[tileType];		
-					if (tileType) ctx.fillRect(x * GRID_SIZE,y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+					let tileType = currentLevel.grid[index];
+					ctx.fillStyle = tileColors[tileType];	
+					if (tileType) ctx.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+					index++;
 				}
 			}
 		}
