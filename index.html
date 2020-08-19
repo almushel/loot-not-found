@@ -12,7 +12,7 @@
 		let canvas, ctx, w, h;
 		
 		const tileTypes = [
-			{name: 'ground', durability: Infinity, effects: new Set([2, 4, 5, 6]),},	//0 ground
+			{name: 'ground', durability: Infinity, effects: new Set([1, 3, 4, 5]),},	//0 ground
 			{name: 'concrete', durability: 100, effects: new Set([]),},					//1 concrete
 			{name: 'wood', durability: 50, effects: new Set([0]),},						//2 wood
 			{name: 'metal', durability: 100, effects: new Set([2, 3]),},				//3 metal
@@ -22,15 +22,15 @@
 		const tileColors = ['#202020', '#505050', '#452b25', '#707070', 'skyblue'];
 
 		const effectTypes = [
-			{name: 'fire', ondeath: 3,},	//0 fire
-			{name: 'water'}, 				//1 water
-			{name: 'electricity'},			//2 electricity
-			{name: 'smoke'},  				//3 smoke
-			{name: 'gas'},					//4 gas
-			{name: 'steam'},				//5 steam
+			{name: 'fire', life: 300, ondeath: 3,},					//0 fire
+			{name: 'water', life: 300, ondeath: -1,}, 				//1 water
+			{name: 'electricity', life: 300, ondeath: -1,},			//2 electricity
+			{name: 'smoke', life: 900, ondeath: -1,},  				//3 smoke
+			{name: 'gas', life: 300, ondeath: -1,},					//4 gas
+			{name: 'steam', life: 300, ondeath: -1,},				//5 steam
 		];
 
-		const effectColors = ['red', 'skyblue', 'yellow', '#090909', 'green', 'powderblue'];
+		const effectColors = ['red', '#2020ff', 'yellow', '#090909', 'green', 'powderblue'];
 
 		/*
 			Element tiles:
@@ -56,7 +56,7 @@
 
 			setType(levelIndex, type) {
 				this.grid[levelIndex * this._stride] = type;
-				this.setLifeTime(levelIndex, 300);
+				if(effectTypes[type]) this.setLifeTime(levelIndex, effectTypes[type].life);
 			}
 
 			getLifetime(levelIndex) {
@@ -170,10 +170,13 @@
 			let index = 0;
 			for (let y = 0; y < height; y++) {
 				for (let x = 0; x < width; x++) {
-					if (y < 4 || y > height - 4 || x < 4 || x > width - 4);
-					else if (Math.abs((height/2) - y) <= 5) newGrid[index] = 2;
-					else if (x % 8 == 0) newGrid[index] = 1;
-					else newGrid[index] = 2;
+					if (Math.round(Math.abs(x - width/2)) == 4) {
+						if (y == Math.floor(height/2));
+						else if (y >= 15 && y <= height - 15) newGrid[index] = 1;
+					}
+					else if (Math.round(Math.abs(x - width/2)) < 4) { 
+						if (y == 15 || y == height - 15) newGrid[index] = 1;
+					}
 					index++;
 				}
 			}
@@ -299,7 +302,7 @@
 			window.addEventListener('orientationchange', resizeCanvas);
 
 			currentLevel = generateLevel(Math.floor(w / GRID_SIZE), Math.floor(h / GRID_SIZE));
-			currentLevel.effects.setType(Math.ceil(currentLevel.grid.length/2), 0);
+			currentLevel.effects.setType(Math.ceil(currentLevel.grid.length/2), 1);
 			player.position.x = currentLevel.width/2 * GRID_SIZE;
 
 			setInterval(update, 1000 / 60);
@@ -330,31 +333,76 @@
 				if (lifeTime <= 0 || currentLevel._tileHP[e] <= 0)  {
 					currentLevel._tileHP[e] = 100;
 					let deathEffect = effectTypes[type].ondeath
-					if (deathEffect) effects.setType(e, deathEffect);
+					if (deathEffect >= 0) effects.setType(e, deathEffect);
 					else effects.setType(e, -1);
 					continue;
 				}
 
-				if (currentLevel.grid[e]) {
-					currentLevel._tileHP[e] -= Math.random();
-					if (currentLevel._tileHP[e] <= 0) currentLevel.grid[e] = 0;
-				}
+				elementEffectOnTile(e, type);
 
-				for (let y = -1; y < 2; y++) {
-					for (let x = -1; x < 2; x++) {
-						if (x == 0 && y == 0) continue;
-						let checkTile = e + (currentLevel.width * y) + x;
-						if (checkTile < 0 || checkTile > currentLevel.grid.length) continue;
-						if (effects.getType(checkTile) < 0) {
-							let tileType = currentLevel.grid[checkTile];
-							if (tileTypes[tileType].effects.has(type) && Math.random() > 0.98) {
-								effects.setType(checkTile, type)
-							}
-						}
+				let checkTiles = tilesNearIndex(e);
+				checkTiles = shuffle(checkTiles);
+				for (let checkTile of checkTiles) {
+					if (checkTile == e) continue; //skip current tile
+					let tileType = currentLevel.grid[checkTile];
+					if (tileTypes[tileType].effects.has(type)) {
+						elementSpread(e, checkTile, type);
+					}
+				}	
+			}
+		}
+
+		function elementEffectOnTile(tileIndex, elementType) {
+			let effects = currentLevel.effects;
+			let lifeTime = effects.getLifetime(tileIndex);
+			switch(elementType) {
+				case 0: //fire
+					effects.setLifeTime(tileIndex, lifeTime - Math.random());
+					currentLevel._tileHP[tileIndex] -= Math.random();
+					if (currentLevel._tileHP[tileIndex] <= 0) currentLevel.grid[tileIndex] = 0;
+					break;
+				case 1: //water
+					break;
+				case 2:
+					break;
+				case 3: //smoke
+					effects.setLifeTime(tileIndex, lifeTime - Math.random() / 2);
+					break;
+				default:
+					break;
+			}
+		}
+
+		function elementSpread(tileFrom, tileTo, element) {
+			let effects = currentLevel.effects;
+			switch(element) {
+				case 0: //fire
+				if (effects.getType(tileTo) < 0 && Math.random() > 0.98) effects.setType(tileTo, element);
+					break;
+				case 1: {//water
+					let fromLife = effects.getLifetime(tileFrom);
+					if (fromLife > 1) {
+						let toLife = (effects.getType(tileTo) == element) ? effects.getLifetime(tileTo) : 0;
+						if (!toLife) effects.setType(tileTo, element);
+						effects.setLifeTime(tileTo, toLife + 1);
+						effects.setLifeTime(tileFrom, fromLife - 1);
+					}
+					break;
+				}
+				case 2:
+					break;
+				case 3: {//smoke
+					let fromLife = effects.getLifetime(tileFrom);
+					if (fromLife > 4) {
+						let toLife = (effects.getType(tileTo) == element) ? effects.getLifetime(tileTo) : 0;
+						if (!toLife) effects.setType(tileTo, element);
+						effects.setLifeTime(tileTo, toLife + 4);
+						effects.setLifeTime(tileFrom, fromLife - 4);
 					}
 				}
-
-				effects.setLifeTime(e, lifeTime - Math.random());
+					break;
+				default:
+					break;
 			}
 		}
 
@@ -397,8 +445,8 @@
 			ctx.fillStyle = tileColors[0];
 			ctx.fillRect(0, 0, w, h);
 			drawGrid();
-			player.draw();
 			drawElements();
+			player.draw();
 		}
 
 		function drawElements() {
@@ -425,6 +473,20 @@
 					index++;
 				}
 			}
+		}
+
+		function shuffle(array) {
+			let currentIndex = array.length, randomIndex, currentElement;
+
+			while (currentIndex) {
+				randomIndex = Math.floor(Math.random() * currentIndex--);
+
+				currentElement = array[currentIndex];
+				array[currentIndex] = array[randomIndex];
+				array[randomIndex] = currentElement;
+			}
+
+			return array;
 		}
 
 		function resizeCanvas(e) {
