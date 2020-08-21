@@ -7,9 +7,9 @@
 			padding: 0;
 		}
 	</style>
+	<script src='level.js'></script>
 	<script src='physics.js'></script>
 	<script src='collision.js'></script>
-	<script src='level.js'></script>
 	<script src='input.js'></script>
 	<script>
 		
@@ -47,8 +47,8 @@
 			window.addEventListener('orientationchange', resizeCanvas);
 
 			currentLevel = generateLevel(Math.floor(w / GRID_SIZE), Math.floor(h / GRID_SIZE));
-			currentLevel.effects.setType(Math.ceil(currentLevel.grid.length/2), 0);
-			currentLevel.effects.setType(Math.ceil(currentLevel.grid.length/2) + 4, 1);
+			currentLevel.setTileType(1, Math.ceil(currentLevel.length/2), FIRE);
+			currentLevel.setTileType(0, Math.ceil(currentLevel.length/2) + 3, WATER);
 			player.position.x = currentLevel.width/2 * GRID_SIZE;
 
 			setInterval(update, 1000 / 60);
@@ -60,11 +60,11 @@
 		}
 
 		function draw() {
-			ctx.fillStyle = tileColors[0];
+			ctx.fillStyle = substColors[0];
 			ctx.fillRect(0, 0, w, h);
-			drawGrid();
-			currentLevel.effects.draw();
+			currentLevel.draw(0)
 			player.draw();
+			currentLevel.draw(1);
 		}
 
 		function shuffle(array) {
