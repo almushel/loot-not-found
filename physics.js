@@ -1,73 +1,78 @@
+const NOEFF = -1; //No effect
+const GRND = 0;
+const CNCRT = 1;
+const WOOD = 2;
+const METAL = 3;
+const GLASS = 4;
+const WATER = 5;
+
+const FIRE = 10;
+const SMOKE = 11;
+const GAS = 12;
+const STEAM = 13;
+const SHOCK = 14;
+const E_STM = 15; //Electrified steam
+
+const ALL_SUBST = [GRND, CNCRT, WOOD, METAL, GLASS, WATER, FIRE, SMOKE, GAS, STEAM, SHOCK];
+const SOLID_SUBST = [GRND, CNCRT, WOOD, METAL, GLASS, WATER];
+const GAS_SUBST = [FIRE, SMOKE, GAS, STEAM, SHOCK]
+
+const EMPTY_SET = new Set();
+const SOLID_SUBST_SET = new Set(SOLID_SUBST);
+const GAS_SUBST_SET = new Set(GAS_SUBST);
+const ALL_SUBST_SET = new Set(ALL_SUBST);
+
 /*
-	Element tiles:
-		-1 hp per tick
-		1 hp elemental damage to adjacent tiles per tick
-			Only damage weak tiles (i.e. fire damages wood, but not concrete)
-			Tiles inherit elemental effect at certain HP threshold (50%?)
-			If adjacent tile already has elemental effect, check for interactions (electricity + water)
-			If adjacent tile is empty, check for fill effect (fire produces smoke)	
+	Substances properties:
+		state:
+			1 (solid): no expansion, layer 0
+			2 (liquid): slow expansion into empty space, layer 0
+			3 (gas): faster expansion into empty space, layer 1
+			4 (plasma): fastest exansion into vulnerable tiles, layer 1
+		life: lifetime and/or durability of substance tile
+		quantity: amount of substance in tile (used for expansion)
+		decay: rate at which substance life counts down every frame
+		ondeath: substance tile left behind when life reaches zero
+		
 */
 
-//TO-DO: Separate life and quantity
+const substanceTypes = [];
+//.effects[0] is ground layer .effect[1] is air layer
+substanceTypes[GRND]  = {life: Infinity, quantity: 1, state: 1, effects: new Set([WATER, SMOKE, STEAM, GAS]), };
+//liquid/solid
+substanceTypes[CNCRT] = {life: 100, 	quantity: 1,  state: 1, effects: EMPTY_SET, 		ondeath: NOEFF, };
+substanceTypes[WOOD]  = {life: 50, 		quantity: 1,  state: 1, effects: new Set([FIRE]), 	ondeath: NOEFF, };
+substanceTypes[METAL] = {life: 200, 	quantity: 1,  state: 1, effects: new Set([SHOCK]), 	ondeath: NOEFF, };
+substanceTypes[GLASS] = {life: 25, 		quantity: 1,  state: 1, effects: EMPTY_SET, 		ondeath: NOEFF, };
+substanceTypes[WATER] = {life: 100, 	quantity: 64, state: 2, effects: new Set([SMOKE, STEAM, SHOCK, GAS, WATER]), ondeath: NOEFF, };
+//energy/gas
+substanceTypes[FIRE]  = {life: 60, 		quantity: 1,  state: 4, effects: new Set([WOOD]), 		ondeath: SMOKE, };
+substanceTypes[SMOKE] = {life: 60, 		quantity: 32, state: 3, effects: new Set([SMOKE, GRND, WATER]), 	ondeath: NOEFF, };
+substanceTypes[GAS]   = {life: 60, 		quantity: 60, state: 3, effects: new Set([GAS, GRND, WATER]), 		ondeath: NOEFF, };
+substanceTypes[STEAM] = {life: 120, 	quantity: 64, state: 3, effects: new Set([STEAM, GRND, WATER]), 		ondeath: NOEFF, };
+substanceTypes[SHOCK] = {life: 60, 		quantity: 60, state: 4, effects: EMPTY_SET, 		ondeath: NOEFF, };
 
+const substColors = new Array(substanceTypes.length).fill('#000000');
+substColors[GRND] = '#202020';
+substColors[CNCRT] = '#505050';
+substColors[WOOD] = '#452b25';
+substColors[METAL] = '#707070';
+substColors[GLASS] = 'skyblue';
+substColors[WATER] = '#2020ff';
+substColors[FIRE] = 'red';
+substColors[SMOKE] = '#090909';
+substColors[GAS] = 'green';
+substColors[STEAM] = '#c0f0ff';
+substColors[SHOCK] = 'yellow';
+substColors[E_STM] = 'orange'; //Electrified steam
+
+//Using map to set every index to a unique array filled with NOEFF instead of a bunch of references to the same array, which I would never want
+const effectMatrix 	= new Array(substanceTypes.length).fill(null).map(() => {return new Array(substanceTypes.length).fill(NOEFF) });
 //[firstEffect][secondEffect] = result
-const effectMatrix 	= [];
-effectMatrix[FIRE] 	= [NOEFF, STEAM, NOEFF, SMOKE, FIRE , NOEFF, NOEFF];
-effectMatrix[WATER] = [STEAM, NOEFF, NOEFF, NOEFF, NOEFF, NOEFF, NOEFF];
-effectMatrix[SHOCK] = [NOEFF, NOEFF, NOEFF, NOEFF, NOEFF, NOEFF, NOEFF];
-effectMatrix[SMOKE] = [NOEFF, NOEFF, NOEFF, NOEFF, NOEFF, NOEFF, NOEFF];
-effectMatrix[GAS] 	= [NOEFF, NOEFF, NOEFF, NOEFF, NOEFF, NOEFF, NOEFF];
-effectMatrix[STEAM] = [NOEFF, NOEFF, NOEFF, NOEFF, NOEFF, NOEFF, NOEFF];
-effectMatrix[E_STM] = [NOEFF, NOEFF, NOEFF, NOEFF, NOEFF, NOEFF, NOEFF];
-
-class SubstanceLayer {
-	constructor(size) {
-		this._stride = 3; /*1: Effect Type, 2: quantity, 3: Lifetime */
-		this.grid = [];
-		this.grid.length = size * this._stride;
-		this.grid.fill(0);
-	}
-
-	getType(levelIndex) {
-		return this.grid[levelIndex * this._stride];
-	}
-
-	setType(levelIndex, type) {
-		this.grid[levelIndex * this._stride] = type;
-		if (substanceTypes[type]) this.setQuantity(levelIndex, substanceTypes[type].quantity);
-		if (substanceTypes[type]) this.setLifeTime(levelIndex, substanceTypes[type].life);
-	}
-
-	getQuantity(levelIndex) {
-		return this.grid[levelIndex * this._stride + 1];
-	}
-
-	setQuantity(levelIndex, value) {
-		this.grid[levelIndex * this._stride + 1] = value;
-	}
-
-	getLifeTime(levelIndex) {
-		return this.grid[levelIndex * this._stride + 2];
-	}
-
-	setLifeTime(levelIndex, value) {
-		this.grid[levelIndex * this._stride + 2] = value;
-	}
-
-	draw() {
-		ctx.globalAlpha = 0.4;
-		for (let e = 0; e < this.length; e++) {
-			let type = this.getType(e);
-			if (type <= 0) continue;
-			ctx.fillStyle = substColors[type];
-			let x = e % currentLevel.width, y = (e - x) / currentLevel.width;
-			ctx.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
-		}
-		ctx.globalAlpha = 1;
-	}
-
-	get length() { return this.grid.length / this._stride; }
-}
+effectMatrix[FIRE][WATER] = STEAM;
+effectMatrix[WATER][FIRE] = STEAM;
+effectMatrix[FIRE][GRND] = SMOKE;
+effectMatrix[GRND][FIRE] = SMOKE;
 
 class Vector2 {
 	constructor(x, y) {
@@ -94,7 +99,8 @@ class Vector2 {
 	}
 
 	rotate(angle) {
-		let x = Math.cos(this.x) - Math.sin(this.y), y = Math.sin(this.x) + Math.cos(this.y);
+		let x = this.x * Math.cos(angle) - this.y * Math.sin(angle), 
+			y = this.x * Math.sin(angle) + this.y * Math.cos(angle);
 		return new Vector2(x, y);
 	}
 
@@ -139,7 +145,7 @@ function physicsUpdate() {
 		let x = tile % width;
 		let y = Math.floor(tile / width);
 		let tileType = currentLevel.getTileType(0, tile);
-		if (!tileType) continue;
+		if (!tileType || substanceTypes[tileType].state > 1) continue;
 
 		let tileRect = {
 			x: (x * GRID_SIZE) + (GRID_SIZE / 2), y: (y * GRID_SIZE) + (GRID_SIZE / 2),
@@ -163,43 +169,21 @@ function physicsUpdate() {
 
 function updateElements() {
 	for (let e = currentLevel.length - 1; e >= 0; e--) {
-		let type = currentLevel.getTileType(1, e);
-		if (type <= GRND) continue; //No effect in this tile
-		let lifeTime = currentLevel.getTileLife(1, e);
+		for (let layer = 0; layer < 2; layer++) {
+			let type = currentLevel.getTileType(layer, e);
+			if (type <= GRND) continue; //No effect in this tile
 
-		//TO-DO: Move to elementEffectOnTile
-		if (lifeTime <= 0) {
-			currentLevel.setTileLife(0, e, 100);
-			let deathEffect = substanceTypes[type].ondeath
-			if (deathEffect >= 0) currentLevel.setTileType(1, e, deathEffect);
-			else currentLevel.setTileType(1, e, NOEFF);
-			continue;
-		}
+			if (layer == 1) elementEffectOnTile(e, type);
 
-		elementEffectOnTile(e, type);
+			let checkTiles = shuffle(tilesNearIndex(e));
+			for (let checkTile of checkTiles) {
+				if (checkTile == e) continue; //skip current tile
+				let tileType = currentLevel.getTileType(0, checkTile);
+				let ctType = currentLevel.getTileType(layer, checkTile);
 
-		let checkTiles = shuffle(tilesNearIndex(e));
-		for (let checkTile of checkTiles) {
-			if (checkTile == e) continue; //skip current tile
-			let tileType = currentLevel.getTileType(0, checkTile);
-			let ctType = currentLevel.getTileType(1, checkTile);
-
-			if (ctType > NOEFF || ctType == type) {
-				if (substanceTypes[tileType].effects[1].has(type)) { elementSpread(e, checkTile, type);}
-				//TO-DO: Move into more general function
-				else if (type == FIRE && substanceTypes[tileType].effects[1].has(SMOKE))  {
-					if (currentLevel.getTileType(1, checkTile) == SMOKE) {
-						let quant = currentLevel.getTileQuantity(1, checkTile);
-						currentLevel.setTileQuantity(1, checkTile, quant + Math.random());
-					} else if (currentLevel.getTileType(0, checkTile) == WATER) {
-						currentLevel.setTileType(1, checkTile, STEAM);
-					} 
-					else if (currentLevel.getTileType(1, checkTile) < 1) {
-						currentLevel.setTileType(1, checkTile, SMOKE);
-					}
-				}
-			} else {
-				elementInteraction(checkTile, type);
+				if (ctType > NOEFF) {
+					elementSpread(layer, e, checkTile);
+				} 
 			}
 		}
 	}
@@ -207,87 +191,90 @@ function updateElements() {
 
 function elementEffectOnTile(tileIndex, elementType) {
 	let lifeTime = currentLevel.getTileLife(1, tileIndex);
-	switch (elementType) {
-		case FIRE: //fire
-			currentLevel.setTileLife(1, tileIndex, lifeTime - Math.random() / 2);
-			let tileHP = currentLevel.getTileLife(0, tileIndex);
-			currentLevel.setTileLife(0, tileIndex, tileHP - Math.random());
-			if (tileHP <= 0) currentLevel.setTileType(0, tileIndex, GRND);
-			break;
-		case WATER:
-			if (elementType == FIRE) currentLevel.setTileType(1, tileIndex, STEAM);
-			break;
-		case SHOCK:
-			break;
-		case SMOKE:
-			currentLevel.setTileLife(1, tileIndex, lifeTime - Math.random() / 2);
-			break;
-		case STEAM:
-			currentLevel.setTileLife(1, tileIndex, lifeTime - Math.random() / 2);
-			break;
-		default:
-			break;
+	let tileHP = currentLevel.getTileLife(0, tileIndex);
+	let state = substanceTypes[elementType].state;
+
+	let decay = Math.random();
+	if (state >= 3) { currentLevel.setTileLife(1, tileIndex, lifeTime - decay);}
+	if (state == 4) { 
+		if (tileHP <= 0) {
+			currentLevel.setTileType(0, tileIndex, GRND);
+			currentLevel.setTileLife(0, tileIndex, 0);
+			currentLevel.setTileLife(1, tileIndex, 0);
+		} else if (currentLevel.getTileType(0, tileIndex) > GRND) {
+			currentLevel.setTileLife(0, tileIndex, tileHP - decay);
+			currentLevel.setTileLife(1, tileIndex, tileHP + decay);
+		}
+	}
+
+	if (lifeTime <= 0) {
+		let deathEffect = substanceTypes[elementType].ondeath
+		if (deathEffect >= GRND) currentLevel.setTileType(1, tileIndex, deathEffect);
+		else currentLevel.setTileType(1, tileIndex, NOEFF);
 	}
 }
 
-function elementSpread(tileFrom, tileTo, element) {
-	let toType = currentLevel.getTileType(1, tileTo);
-	if (toType != element && toType > 1) return;
-	let fromQuant = currentLevel.getTileQuantity(1, tileFrom);
-	switch (element) {
-		case FIRE: //fire
-			if (Math.random() > 0.98) currentLevel.setTileType(1, tileTo, element);
-			break;
-		case WATER: {//water
-			if (fromQuant > 1) {
-				let toQuant = (currentLevel.getTileType(1, tileTo) == element) ? currentLevel.getTileQuantity(1, tileTo) : 0;
-				if (!toQuant) currentLevel.setTileType(1, tileTo, element);
-				currentLevel.setTileQuantity(1, tileTo, toQuant + 1);
-				currentLevel.setTileQuantity(1, tileFrom, fromQuant - 1);
+function elementSpread(layer, tileFrom, tileTo) {	
+	let fromType = currentLevel.getTileType(layer, tileFrom);
+	let state;
+	if (substanceTypes[fromType] && (state = substanceTypes[fromType].state) == 1) return;
+	
+	let airType = currentLevel.getTileType(layer, tileTo);
+	let groundType = currentLevel.getTileType(0, tileTo);
+
+	let toType = state > 2 ? airType : groundType;
+	let hasType = state > 2 ? groundType : airType;
+
+	if (fromType == FIRE && groundType == GRND) console.log('should be fucking smoke');
+
+	if (fromType > GRND) {
+		if (substanceTypes[hasType].effects.has(fromType) && (toType <= GRND || toType == fromType) ) {
+			let fromQuant = currentLevel.getTileQuantity(layer, tileFrom);
+			let spreadQuant = state > 2 ? 4 : 1;
+			if (state < 4 && fromQuant > spreadQuant) {
+				let toQuant = (airType == fromType) ? currentLevel.getTileQuantity(layer, tileTo) : 0;
+				
+				if (!toQuant) currentLevel.setTileType(layer, tileTo, fromType);
+				else currentLevel.setTileLife(layer, tileTo, currentLevel.getTileLife(layer, tileTo) + Math.random());
+		
+				currentLevel.setTileQuantity(layer, tileTo, toQuant + spreadQuant);
+				if (state === 3) {
+					currentLevel.setTileQuantity(layer, tileFrom, fromQuant - spreadQuant * 1.2);
+				} else currentLevel.setTileQuantity(layer, tileFrom, fromQuant - spreadQuant);
+				
+			} else if (state == 4) {
+				if (Math.random() > 0.98) 
+					currentLevel.setTileType(1, tileTo, fromType);
 			}
-			break;
+		} else {
+			elementInteraction(layer, tileFrom, tileTo);
 		}
-		case SHOCK:
-			break;
-		case SMOKE: {
-			const spreadQuant = 2;
-			if (fromQuant > spreadQuant && Math.random() > 0.5) {
-				let toQuant = (currentLevel.getTileType(1, tileTo) == element) ? currentLevel.getTileQuantity(1, tileTo) : 0;
-				if (!toQuant) currentLevel.setTileType(1, tileTo, element);
-				currentLevel.setTileQuantity(1, tileTo, toQuant + spreadQuant);
-				currentLevel.setTileQuantity(1, tileFrom, fromQuant - spreadQuant);
-			}
-		}
-			break;
-		case STEAM: {
-				const spreadQuant = 2;
-				if (fromQuant > spreadQuant) {
-					let toQuant = (currentLevel.getTileType(1, tileTo) == element) ? currentLevel.getTileQuantity(1, tileTo) : 0;
-					if (!toQuant) currentLevel.setTileType(1, tileTo, element);
-					currentLevel.setTileQuantity(1, tileTo, toQuant + spreadQuant);
-					currentLevel.setTileQuantity(1, tileFrom, fromQuant - spreadQuant);
-				}
-			}
-			break
-		default:
-			break;
 	}
 }
 
-function elementInteraction(tile, sourceElement) {
-	let tileType = currentLevel.getTileType(0, tile);
-	let targetElement = currentLevel.getTileType(1, tile);
+function elementInteraction(fromLayer, tileFrom, tileTo) {
+	let fromType = currentLevel.getTileType(fromLayer, tileFrom);
+	let groundType = currentLevel.getTileType(0, tileTo);
+	let airType = currentLevel.getTileType(fromLayer, tileTo);
 
-	if (sourceElement <= 0 || targetElement <= 0) return;
+	if (fromType <= GRND || airType <= GRND || groundType < GRND) return;
 
 	let result;
-	if (sourceElement < effectMatrix.length && targetElement < effectMatrix[FIRE].length) result = effectMatrix[sourceElement][targetElement];
-	else {
+	if (effectMatrix[fromType]) {
+		if (result = effectMatrix[fromType][airType]) {
+			result = effectMatrix[fromType][groundType]
+		}
+	} else {
 		console.log('invalid substance type for interaction');
 		result = NOEFF;
 	}
 
-	if (result != NOEFF && substanceTypes[tileType].effects[1].has(result)) {
-		currentLevel.setTileType(1, tile, result);
+	if (result && result > GRND) {
+		let checkType = substanceTypes[result].state > 2 ? groundType : airType;
+		if (substanceTypes[checkType].effects.has(result)) {
+			let resultLayer = substanceTypes[result].state < 3 ? 0 : 1;
+			
+			currentLevel.setTileType(resultLayer, tileTo, result);
+		}
 	}
 }

@@ -1,58 +1,52 @@
 const GRID_SIZE = 16;
 
-const NOEFF = -1; //No effect
-const GRND = 0;
-const CNCRT = 1;
-const WOOD = 2;
-const METAL = 3;
-const GLASS = 4;
-const WATER = 5;
+class SubstanceLayer {
+	constructor(size) {
+		this._stride = 3; /*1: Effect Type, 2: quantity, 3: Lifetime */
+		this.grid = new Array(size * this._stride);
+		this.grid.fill(0);
+	}
 
-const FIRE = 10;
-const SMOKE = 11;
-const GAS = 12;
-const STEAM = 13;
-const SHOCK = 14;
-const E_STM = 15; //Electrified steam
+	getType(levelIndex) {
+		return this.grid[levelIndex * this._stride];
+	}
 
-const ALL_SUBST = [GRND, CNCRT, WOOD, METAL, GLASS, WATER, FIRE, SMOKE, GAS, STEAM, SHOCK];
-const SOLID_SUBST = [GRND, CNCRT, WOOD, METAL, GLASS, WATER];
-const GAS_SUBST = [FIRE, SMOKE, GAS, STEAM, SHOCK]
+	setType(levelIndex, type) {
+		this.grid[levelIndex * this._stride] = type;
+		if (substanceTypes[type]) this.setQuantity(levelIndex, substanceTypes[type].quantity);
+		if (substanceTypes[type]) this.setLifeTime(levelIndex, substanceTypes[type].life);
+	}
 
-const EMPTY_SET = new Set();
-const SOLID_SUBST_SET = new Set(SOLID_SUBST);
-const GAS_SUBST_SET = new Set(GAS_SUBST);
-const ALL_SUBST_SET = new Set(ALL_SUBST);
+	getQuantity(levelIndex) {
+		return this.grid[levelIndex * this._stride + 1];
+	}
 
-const substanceTypes = [];
-//.effects[0] is ground layer .effect[1] is air layer
-substanceTypes[GRND]  = {life: Infinity, quantity: 1, effects: [SOLID_SUBST_SET, new Set([SMOKE, STEAM, GAS])], };
-//liquid/solid
-substanceTypes[CNCRT] = {life: 100, quantity: 1, effects: [EMPTY_SET, EMPTY_SET], ondeath: NOEFF, };
-substanceTypes[WOOD]  = {life: 50, quantity: 1, effects: [EMPTY_SET, new Set([FIRE])], ondeath: NOEFF, };
-substanceTypes[METAL] = {life: 200, quantity: 1, effects: [EMPTY_SET, new Set([SHOCK])], ondeath: NOEFF, };
-substanceTypes[GLASS] = {life: 25, quantity: 1, effects: [EMPTY_SET, EMPTY_SET], ondeath: NOEFF, };
-substanceTypes[WATER] = {life: Infinity, quantity: 1, effects: [EMPTY_SET, new Set([SMOKE, STEAM, SHOCK, GAS])], ondeath: NOEFF, };
-//energy/gas
-substanceTypes[FIRE]  = {life: 60, quantity: 1, effects: [EMPTY_SET, EMPTY_SET], ondeath: SMOKE, };
-substanceTypes[SMOKE] = {life: 30, quantity: 32, effects: [SOLID_SUBST_SET, EMPTY_SET], ondeath: NOEFF, };
-substanceTypes[GAS]   = {life: 60, quantity: 60, effects: [EMPTY_SET, EMPTY_SET], ondeath: NOEFF, };
-substanceTypes[STEAM] = {life: 30, quantity: 8, effects: [EMPTY_SET, EMPTY_SET], ondeath: NOEFF, };
-substanceTypes[SHOCK] = {life: 60, quantity: 60, effects: [EMPTY_SET, EMPTY_SET], ondeath: NOEFF, };
+	setQuantity(levelIndex, value) {
+		this.grid[levelIndex * this._stride + 1] = value;
+	}
 
-const substColors = [];
-substColors[GRND] = '#202020';
-substColors[CNCRT] = '#505050';
-substColors[WOOD] = '#452b25';
-substColors[METAL] = '#707070';
-substColors[GLASS] = 'skyblue';
-substColors[WATER] = '#2020ff';
-substColors[FIRE] = 'red';
-substColors[SMOKE] = '#090909';
-substColors[GAS] = 'green';
-substColors[STEAM] = '#c0f0ff';
-substColors[SHOCK] = 'yellow';
-substColors[E_STM] = 'orange'; //Electrified steam
+	getLifeTime(levelIndex) {
+		return this.grid[levelIndex * this._stride + 2];
+	}
+
+	setLifeTime(levelIndex, value) {
+		this.grid[levelIndex * this._stride + 2] = value;
+	}
+
+	draw() {
+		ctx.globalAlpha = 0.4;
+		for (let e = 0; e < this.length; e++) {
+			let type = this.getType(e);
+			if (type <= 0) continue;
+			ctx.fillStyle = substColors[type];
+			let x = e % currentLevel.width, y = (e - x) / currentLevel.width;
+			ctx.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+		}
+		ctx.globalAlpha = 1;
+	}
+
+	get length() { return this.grid.length / this._stride; }
+}
 
 class GameLevel {
 	_layers = [];
