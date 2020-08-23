@@ -225,8 +225,6 @@ function elementSpread(layer, tileFrom, tileTo) {
 	let toType = state > 2 ? airType : groundType;
 	let hasType = state > 2 ? groundType : airType;
 
-	if (fromType == FIRE && groundType == GRND) console.log('should be fucking smoke');
-
 	if (fromType > GRND) {
 		if (substanceTypes[hasType].effects.has(fromType) && (toType <= GRND || toType == fromType) ) {
 			let fromQuant = currentLevel.getTileQuantity(layer, tileFrom);
@@ -257,11 +255,10 @@ function elementInteraction(fromLayer, tileFrom, tileTo) {
 	let groundType = currentLevel.getTileType(0, tileTo);
 	let airType = currentLevel.getTileType(fromLayer, tileTo);
 
-	if (fromType <= GRND || airType <= GRND || groundType < GRND) return;
-
+	if (fromType <= GRND || airType < GRND || groundType < GRND) return;
 	let result;
 	if (effectMatrix[fromType]) {
-		if (result = effectMatrix[fromType][airType]) {
+		if ((result = effectMatrix[fromType][airType])) {
 			result = effectMatrix[fromType][groundType]
 		}
 	} else {
@@ -270,8 +267,7 @@ function elementInteraction(fromLayer, tileFrom, tileTo) {
 	}
 
 	if (result && result > GRND) {
-		let checkType = substanceTypes[result].state > 2 ? groundType : airType;
-		if (substanceTypes[checkType].effects.has(result)) {
+		if (substanceTypes[groundType].effects.has(result)) {
 			let resultLayer = substanceTypes[result].state < 3 ? 0 : 1;
 			
 			currentLevel.setTileType(resultLayer, tileTo, result);

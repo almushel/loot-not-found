@@ -48,8 +48,10 @@
 
 			currentLevel = generateLevel(Math.floor(w / GRID_SIZE), Math.floor(h / GRID_SIZE));
 			currentLevel.setTileType(1, Math.ceil(currentLevel.length/2), FIRE);
-			currentLevel.setTileType(0, Math.ceil(currentLevel.length/2) + 3, WATER);
-			player.position.x = currentLevel.width/2 * GRID_SIZE;
+			currentLevel.setTileType(0, Math.ceil(currentLevel.length/2) + 11, WATER);
+			
+			player.position.x = currentLevel.width/2 * GRID_SIZE - (GRID_SIZE * 12);
+			player.position.y = currentLevel.height/2 * GRID_SIZE + GRID_SIZE;
 
 			setInterval(update, 1000 / 60);
 		}
@@ -64,7 +66,9 @@
 			ctx.fillRect(0, 0, w, h);
 			currentLevel.draw(0)
 			player.draw();
+			ctx.globalAlpha = 0.3;
 			currentLevel.draw(1);
+			ctx.globalAlpha = 1;
 		}
 
 		function shuffle(array) {

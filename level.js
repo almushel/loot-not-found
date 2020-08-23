@@ -109,11 +109,11 @@ function generateLevel(width, height) {
 	let index = 0;
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
-			if (Math.round(Math.abs(x - width / 2)) == 4) {
+			if (Math.round(Math.abs(x - width / 2)) == 10) {
 				if (Math.abs(Math.floor(y - height / 2)) < 3);
 				else if (y >= 15 && y <= height - 15) newLevel.setTileType(0, index, CNCRT);
 			}
-			else if (Math.round(Math.abs(x - width / 2)) < 4) {
+			else if (Math.round(Math.abs(x - width / 2)) < 10) {
 				if (y == 15 || y == height - 15) newLevel.setTileType(0, index, CNCRT);
 				else if (y >= 15 && y <= height - 15) newLevel.setTileType(0, index, WOOD);
 			}
