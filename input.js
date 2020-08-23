@@ -12,8 +12,8 @@ function setControl(key, to) {
 	if (key == 68 || key == 39) { controls.r = to } //d or right
 	if (key == 87 || key == 38) { controls.u = to } //w or up
 	if (key == 83 || key == 40) { controls.d = to } //s or down
-	if (key == 32) { controls.interact = 1 } //space
-	if (key == 17) { controls.use = 1 } //control
+	if (key == 32) { controls.interact = to } //space
+	if (key == 17) { controls.use = to } //control
 }
 
 function control() {
@@ -24,7 +24,7 @@ function control() {
 	if (controls.u) av.y -= 1;
 	if (controls.d) av.y += 1;
 
-	if (controls.interact) player.hp = 0;
+	if (controls.interact) player.hp -= 2;
 
 	return av.normalize();
 }

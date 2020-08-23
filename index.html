@@ -3,6 +3,7 @@
 <head>
 	<style>
 		* {
+			background-color: #202020;
 			margin: 0;
 			padding: 0;
 		}
@@ -52,11 +53,9 @@
 			canvas = document.getElementById('canvas');
 			ctx = canvas.getContext('2d');
 
-			canvas.width = w = window.innerWidth;
-			canvas.height = h = window.innerHeight;
-
 			window.addEventListener('resize', resizeCanvas);
 			window.addEventListener('orientationchange', resizeCanvas);
+			resizeCanvas()
 
 			currentLevel = generateLevel(Math.floor(w / GRID_SIZE), Math.floor(h / GRID_SIZE));
 			currentLevel.spawnTile(1, Math.ceil(currentLevel.length/2), FIRE);
@@ -64,7 +63,7 @@
 			currentLevel.spawnTile(0, Math.ceil(currentLevel.length/2) - 11, OIL);
 
 			
-			player.position.x = currentLevel.width/2 * GRID_SIZE - (GRID_SIZE * 12);
+			player.position.x = currentLevel.width/2 * GRID_SIZE - (GRID_SIZE * 24);
 			player.position.y = currentLevel.height/2 * GRID_SIZE + GRID_SIZE;
 
 			setInterval(update, 1000 / 60);
@@ -76,8 +75,7 @@
 		}
 
 		function draw() {
-			ctx.fillStyle = substColors[0];
-			ctx.fillRect(0, 0, w, h);
+			ctx.clearRect(0, 0, w, h);
 			currentLevel.draw(0)
 			player.draw();
 			currentLevel.draw(1);
@@ -99,9 +97,17 @@
 		}
 
 		function resizeCanvas(e) {
-			canvas.width = w = window.innerWidth;
-			canvas.height = h = window.innerHeight;
-			draw();
+			let widthRemainder = window.innerWidth % GRID_SIZE,
+				heightRemainder = window.innerHeight % GRID_SIZE;
+
+			canvas.width = w = window.innerWidth - widthRemainder;
+			canvas.height = h = window.innerHeight - heightRemainder;
+			canvas.style.marginTop = (widthRemainder/2) + 'px';
+			canvas.style.marginLeft = (heightRemainder/2) + 'px';
+		}
+
+		function clamp (value, min, max) {
+			return Math.min(max, Math.max(value, min));
 		}
 
 	</script>

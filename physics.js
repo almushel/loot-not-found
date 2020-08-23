@@ -246,9 +246,8 @@ function elementSpread(layer, tileFrom, tileTo) {
 				else currentLevel.addLife(layer, tileTo, Math.random());
 		
 				currentLevel.setQuantity(layer, tileTo, toQuant + spreadQuant); //Why can't this bad addQuantity?
-				if (state === 3) {
-					currentLevel.addQuantity(layer, tileFrom, -spreadQuant * 1.2);
-				} else currentLevel.addQuantity(layer, tileFrom, -spreadQuant);
+				if (state === 3) spreadQuant *= 1.2;
+				currentLevel.addQuantity(layer, tileFrom, -spreadQuant);
 				
 			} else if (state == 4) {
 				if (Math.random() > 0.98) currentLevel.spawnTile(1, tileTo, fromType);
@@ -280,7 +279,7 @@ function elementInteraction(fromLayer, tileFrom, tileTo) {
 			let resultLayer = substanceTypes[result].state < 3 ? 0 : 1;
 			
 			if (currentLevel.getType(resultLayer, tileTo) == result) {
-				currentLevel.addQuantity(resultLayer, tileTo, substanceTypes[result].quantity);
+				currentLevel.addQuantity(resultLayer, tileTo, substanceTypes[result].quantity * Math.random() / 2);
 			} else {
 				currentLevel.spawnTile(resultLayer, tileTo, result);
 			}

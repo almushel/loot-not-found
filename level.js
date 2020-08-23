@@ -114,7 +114,9 @@ function generateLevel(width, height) {
 	let index = 0;
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
-			if (Math.round(Math.abs(x - width / 2)) == 10) {
+			if (x == 0 || y == 0 || x == width - 1 || y == height - 1) {
+				newLevel.spawnTile(0, index, CNCRT);
+			} else if (Math.round(Math.abs(x - width / 2)) == 10) {
 				if (Math.abs(Math.floor(y - height / 2)) < 3);
 				else if (y >= 15 && y <= height - 15) newLevel.spawnTile(0, index, CNCRT);
 			}
@@ -138,8 +140,10 @@ function tilesNearIndex(index) {
 	let tiles = [];
 	for (let y = -1; y < 2; y++) {
 		for (let x = -1; x < 2; x++) {
-			let checkTile = index + (currentLevel.width * y) + x;
-			//NOTE: Also need check for edges
+			let checkTile = index + (currentLevel.width * y);
+			if (Math.floor(checkTile / currentLevel.width) !=  Math.floor((checkTile + x) / currentLevel.width))
+				continue;
+			checkTile += x;
 			if (checkTile < 0 || checkTile > currentLevel.length) continue;
 			tiles.push(checkTile);
 		}

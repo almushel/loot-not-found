@@ -1,9 +1,9 @@
 const HP_COLOR = '#ff6060'
 
 function drawUI() {
-    ctx.translate(30, 30)
+    ctx.translate(30, 35)
     drawHP();
-    ctx.translate(-30, -30);
+    ctx.translate(-30, -35);
 }
 
 function drawHP () {
