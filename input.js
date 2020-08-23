@@ -17,11 +17,14 @@ function setControl(key, to) {
 }
 
 function control() {
+	if (player.isDead) return null;
 	let av = new Vector2(0, 0);
 	if (controls.l) av.x -= 1;
 	if (controls.r) av.x += 1;
 	if (controls.u) av.y -= 1;
 	if (controls.d) av.y += 1;
+
+	if (controls.interact) player.hp = 0;
 
 	return av.normalize();
 }

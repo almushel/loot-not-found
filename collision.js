@@ -1,3 +1,14 @@
+function getTileCollider(tileIndex) {
+	let x = tileIndex % currentLevel.width;
+	let y = Math.floor(tileIndex / currentLevel.width);
+	let tileRect = {
+		x: (x * GRID_SIZE) + (GRID_SIZE / 2), y: (y * GRID_SIZE) + (GRID_SIZE / 2),
+		type: 'rect', width: GRID_SIZE, height: GRID_SIZE
+	};
+
+	return tileRect;
+}
+
 function checkCollision(col1, col2) {
 	let collision = {};
 	if (col1.type == 'circle') {

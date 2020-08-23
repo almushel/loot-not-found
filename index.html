@@ -10,12 +10,14 @@
 	<script src='level.js'></script>
 	<script src='physics.js'></script>
 	<script src='collision.js'></script>
+	<script src='ui.js'></script>
 	<script src='input.js'></script>
 	<script>
 		
 		let canvas, ctx, w, h;
 
 		let player = {
+			_hp: 100,
 			color: '#4060C0',
 			size: 16,
 			position: new Vector2(GRID_SIZE * 2, GRID_SIZE * 2),
@@ -27,13 +29,23 @@
 						get radius() {return player.size}, get x() {return player.x}, get y() { return player.y},
 						},
 			draw() {
-				ctx.fillStyle = this.color;
+				ctx.fillStyle = this.isDead ? '#203060' : this.color;
 				ctx.beginPath()
 				ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
 				ctx.fill();
 			},
+			die() {
+				this.isDead = true
+				let dIndex = tileAtCoords(this.position.x, this.position.y);
+				currentLevel.spawnTile(0, dIndex, BLOOD);
+			},
 			get x() { return this.position.x },
 			get y() { return this.position.y },
+			get hp() {return this._hp},
+			set hp(val) {
+				this._hp = Math.min(Math.max(0, val), 100);
+				if (this._hp == 0 && !this.isDead) this.die();
+			}
 		}
 
 		this.onload = () => {
@@ -47,8 +59,10 @@
 			window.addEventListener('orientationchange', resizeCanvas);
 
 			currentLevel = generateLevel(Math.floor(w / GRID_SIZE), Math.floor(h / GRID_SIZE));
-			currentLevel.setTileType(1, Math.ceil(currentLevel.length/2), FIRE);
-			currentLevel.setTileType(0, Math.ceil(currentLevel.length/2) + 11, WATER);
+			currentLevel.spawnTile(1, Math.ceil(currentLevel.length/2), FIRE);
+			currentLevel.spawnTile(0, Math.ceil(currentLevel.length/2) + 11, WATER);
+			currentLevel.spawnTile(0, Math.ceil(currentLevel.length/2) - 11, OIL);
+
 			
 			player.position.x = currentLevel.width/2 * GRID_SIZE - (GRID_SIZE * 12);
 			player.position.y = currentLevel.height/2 * GRID_SIZE + GRID_SIZE;
@@ -66,9 +80,8 @@
 			ctx.fillRect(0, 0, w, h);
 			currentLevel.draw(0)
 			player.draw();
-			ctx.globalAlpha = 0.3;
 			currentLevel.draw(1);
-			ctx.globalAlpha = 1;
+			drawUI();
 		}
 
 		function shuffle(array) {

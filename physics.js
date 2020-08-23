@@ -5,21 +5,23 @@ const WOOD = 2;
 const METAL = 3;
 const GLASS = 4;
 const WATER = 5;
+const BLOOD = 6;
+const OIL = 7;
+const ICE = 8;
 
 const FIRE = 10;
 const SMOKE = 11;
 const GAS = 12;
 const STEAM = 13;
 const SHOCK = 14;
-const E_STM = 15; //Electrified steam
+const BMIST = 15; //Blood mist
+const E_STM = 16; //Electrified steam
 
 const ALL_SUBST = [GRND, CNCRT, WOOD, METAL, GLASS, WATER, FIRE, SMOKE, GAS, STEAM, SHOCK];
-const SOLID_SUBST = [GRND, CNCRT, WOOD, METAL, GLASS, WATER];
-const GAS_SUBST = [FIRE, SMOKE, GAS, STEAM, SHOCK]
 
 const EMPTY_SET = new Set();
-const SOLID_SUBST_SET = new Set(SOLID_SUBST);
-const GAS_SUBST_SET = new Set(GAS_SUBST);
+const SOLID_SUBST_SET = new Set([GRND, CNCRT, WOOD, METAL, GLASS]);
+const GAS_SUBST_SET = new Set([FIRE, SMOKE, GAS, STEAM, SHOCK]);
 const ALL_SUBST_SET = new Set(ALL_SUBST);
 
 /*
@@ -38,16 +40,19 @@ const ALL_SUBST_SET = new Set(ALL_SUBST);
 
 const substanceTypes = [];
 //.effects[0] is ground layer .effect[1] is air layer
-substanceTypes[GRND]  = {life: Infinity, quantity: 1, state: 1, effects: new Set([WATER, SMOKE, STEAM, GAS]), };
+substanceTypes[GRND]  = {life: Infinity, quantity: 1, state: 0, effects: new Set([WATER, OIL, BLOOD, ICE, SMOKE, STEAM, GAS]), };
 //liquid/solid
 substanceTypes[CNCRT] = {life: 100, 	quantity: 1,  state: 1, effects: EMPTY_SET, 		ondeath: NOEFF, };
 substanceTypes[WOOD]  = {life: 50, 		quantity: 1,  state: 1, effects: new Set([FIRE]), 	ondeath: NOEFF, };
 substanceTypes[METAL] = {life: 200, 	quantity: 1,  state: 1, effects: new Set([SHOCK]), 	ondeath: NOEFF, };
 substanceTypes[GLASS] = {life: 25, 		quantity: 1,  state: 1, effects: EMPTY_SET, 		ondeath: NOEFF, };
-substanceTypes[WATER] = {life: 100, 	quantity: 64, state: 2, effects: new Set([SMOKE, STEAM, SHOCK, GAS, WATER]), ondeath: NOEFF, };
+substanceTypes[WATER] = {life: 100, 	quantity: 64, state: 2, effects: new Set([SMOKE, STEAM, SHOCK, GAS, WATER, BLOOD]), ondeath: NOEFF, };
+substanceTypes[OIL] =   {life: 200, 	quantity: 64, state: 2, effects: new Set([SMOKE, STEAM, GAS, FIRE, OIL]), ondeath: NOEFF, };
+substanceTypes[BLOOD] = {life: 100, 	quantity: 64, state: 2, effects: new Set([SMOKE, STEAM, SHOCK, GAS, BLOOD]), ondeath: NOEFF, };
+substanceTypes[ICE]   = {life: 100, 	quantity: 1,  state: 2, effects: new Set([SMOKE, STEAM, SHOCK, GAS]), ondeath: WATER, };
 //energy/gas
 substanceTypes[FIRE]  = {life: 60, 		quantity: 1,  state: 4, effects: new Set([WOOD]), 		ondeath: SMOKE, };
-substanceTypes[SMOKE] = {life: 60, 		quantity: 32, state: 3, effects: new Set([SMOKE, GRND, WATER]), 	ondeath: NOEFF, };
+substanceTypes[SMOKE] = {life: 60, 		quantity: 32, state: 3, effects: new Set([SMOKE, GRND, WATER, BLOOD, OIL, FIRE]), 	ondeath: NOEFF, };
 substanceTypes[GAS]   = {life: 60, 		quantity: 60, state: 3, effects: new Set([GAS, GRND, WATER]), 		ondeath: NOEFF, };
 substanceTypes[STEAM] = {life: 120, 	quantity: 64, state: 3, effects: new Set([STEAM, GRND, WATER]), 		ondeath: NOEFF, };
 substanceTypes[SHOCK] = {life: 60, 		quantity: 60, state: 4, effects: EMPTY_SET, 		ondeath: NOEFF, };
@@ -55,14 +60,16 @@ substanceTypes[SHOCK] = {life: 60, 		quantity: 60, state: 4, effects: EMPTY_SET,
 const substColors = new Array(substanceTypes.length).fill('#000000');
 substColors[GRND] = '#202020';
 substColors[CNCRT] = '#505050';
-substColors[WOOD] = '#452b25';
+substColors[WOOD] = '#402920';
 substColors[METAL] = '#707070';
 substColors[GLASS] = 'skyblue';
-substColors[WATER] = '#2020ff';
-substColors[FIRE] = 'red';
-substColors[SMOKE] = '#090909';
+substColors[WATER] = '#4040b0';
+substColors[BLOOD] = '#330000';
+substColors[ICE] = '#f0f0ff';
+substColors[FIRE] = '#d03510';
+substColors[SMOKE] = '#121212';
 substColors[GAS] = 'green';
-substColors[STEAM] = '#c0f0ff';
+substColors[STEAM] = '#b0b0cf';
 substColors[SHOCK] = 'yellow';
 substColors[E_STM] = 'orange'; //Electrified steam
 
@@ -72,7 +79,7 @@ const effectMatrix 	= new Array(substanceTypes.length).fill(null).map(() => {ret
 effectMatrix[FIRE][WATER] = STEAM;
 effectMatrix[WATER][FIRE] = STEAM;
 effectMatrix[FIRE][GRND] = SMOKE;
-effectMatrix[GRND][FIRE] = SMOKE;
+effectMatrix[FIRE][SMOKE] = SMOKE;
 
 class Vector2 {
 	constructor(x, y) {
@@ -135,34 +142,39 @@ class Vector2 {
 function physicsUpdate() {
 	updateElements();
 	let cv = control();
-	player.velocity = player.velocity.add(cv.multiply(player.acceleration));
+	if (cv) player.velocity = player.velocity.add(cv.multiply(player.acceleration));
 	player.position = player.position.add(player.velocity);
 	player.velocity.length *= player.friction;
 
-	let width = currentLevel.width, height = currentLevel.height;
 	let nearTiles = tilesNearPosition(player);
 	for (tile of nearTiles) {
-		let x = tile % width;
-		let y = Math.floor(tile / width);
-		let tileType = currentLevel.getTileType(0, tile);
-		if (!tileType || substanceTypes[tileType].state > 1) continue;
+		let groundType = currentLevel.getType(0, tile);
+		let airType = currentLevel.getType(1, tile);
 
-		let tileRect = {
-			x: (x * GRID_SIZE) + (GRID_SIZE / 2), y: (y * GRID_SIZE) + (GRID_SIZE / 2),
-			type: 'rect', width: GRID_SIZE, height: GRID_SIZE
-		};
-		let collision = checkCollision(player.collider, tileRect);
-		if (collision.hit) {
-			let correction = new Vector2(player.x - tileRect.x, player.y - tileRect.y);
-			if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
-			else correction.x = 0;
-
-			correction = correction.normalize();
-			correction.x *= collision.overlap.x;
-			correction.y *= collision.overlap.y;
-			player.position = player.position.add(correction);
-			player.velocity = player.velocity.add(correction);
-			player.velocity = player.velocity.multiply(player.friction);
+		if (groundType > GRND || airType > GRND) {
+			let tileRect = getTileCollider(tile);;
+			let collision = checkCollision(player.collider, tileRect);
+			if (collision.hit) {
+				if (substanceTypes[groundType].state == 1) {
+					let correction = new Vector2(player.x - tileRect.x, player.y - tileRect.y);
+					if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
+					else correction.x = 0;
+		
+					correction = correction.normalize();
+					correction.x *= collision.overlap.x;
+					correction.y *= collision.overlap.y;
+					player.position = player.position.add(correction);
+					player.velocity = player.velocity.add(correction);
+					player.velocity = player.velocity.multiply(player.friction);
+				} else {
+					if (groundType == WATER) player.velocity = player.velocity.multiply(0.99);
+					if (groundType == ICE) player.velocity = player.velocity.multiply(1.05);
+				}
+				if (substanceTypes[airType]) {
+					if (airType == FIRE) player.hp--;
+					//if (airType == SMOKE) player.hp -= 0.125;
+				}
+			}
 		}
 	}
 }
@@ -170,7 +182,7 @@ function physicsUpdate() {
 function updateElements() {
 	for (let e = currentLevel.length - 1; e >= 0; e--) {
 		for (let layer = 0; layer < 2; layer++) {
-			let type = currentLevel.getTileType(layer, e);
+			let type = currentLevel.getType(layer, e);
 			if (type <= GRND) continue; //No effect in this tile
 
 			if (layer == 1) elementEffectOnTile(e, type);
@@ -178,8 +190,7 @@ function updateElements() {
 			let checkTiles = shuffle(tilesNearIndex(e));
 			for (let checkTile of checkTiles) {
 				if (checkTile == e) continue; //skip current tile
-				let tileType = currentLevel.getTileType(0, checkTile);
-				let ctType = currentLevel.getTileType(layer, checkTile);
+				let ctType = currentLevel.getType(layer, checkTile);
 
 				if (ctType > NOEFF) {
 					elementSpread(layer, e, checkTile);
@@ -190,59 +201,57 @@ function updateElements() {
 }
 
 function elementEffectOnTile(tileIndex, elementType) {
-	let lifeTime = currentLevel.getTileLife(1, tileIndex);
-	let tileHP = currentLevel.getTileLife(0, tileIndex);
+	let lifeTime = currentLevel.getLife(1, tileIndex);
+	let tileHP = currentLevel.getLife(0, tileIndex);
 	let state = substanceTypes[elementType].state;
 
 	let decay = Math.random();
-	if (state >= 3) { currentLevel.setTileLife(1, tileIndex, lifeTime - decay);}
+	if (state >= 3) { currentLevel.addLife(1, tileIndex, -decay);}
 	if (state == 4) { 
 		if (tileHP <= 0) {
-			currentLevel.setTileType(0, tileIndex, GRND);
-			currentLevel.setTileLife(0, tileIndex, 0);
-			currentLevel.setTileLife(1, tileIndex, 0);
-		} else if (currentLevel.getTileType(0, tileIndex) > GRND) {
-			currentLevel.setTileLife(0, tileIndex, tileHP - decay);
-			currentLevel.setTileLife(1, tileIndex, tileHP + decay);
+			currentLevel.setType(0, tileIndex, GRND);
+			currentLevel.setLife(0, tileIndex, 0);
+			currentLevel.setLife(1, tileIndex, 0);
+		} else if (currentLevel.getType(0, tileIndex) > GRND) {
+			currentLevel.setLife(0, tileIndex, tileHP - decay);
+			currentLevel.setLife(1, tileIndex, tileHP + decay);
 		}
 	}
 
 	if (lifeTime <= 0) {
 		let deathEffect = substanceTypes[elementType].ondeath
-		if (deathEffect >= GRND) currentLevel.setTileType(1, tileIndex, deathEffect);
-		else currentLevel.setTileType(1, tileIndex, NOEFF);
+		if (deathEffect >= GRND) currentLevel.spawnTile(1, tileIndex, deathEffect);
+		else currentLevel.setType(1, tileIndex, NOEFF);
 	}
 }
 
 function elementSpread(layer, tileFrom, tileTo) {	
-	let fromType = currentLevel.getTileType(layer, tileFrom);
+	let fromType = currentLevel.getType(layer, tileFrom);
 	let state;
 	if (substanceTypes[fromType] && (state = substanceTypes[fromType].state) == 1) return;
 	
-	let airType = currentLevel.getTileType(layer, tileTo);
-	let groundType = currentLevel.getTileType(0, tileTo);
+	let airType = currentLevel.getType(layer, tileTo);
+	let groundType = currentLevel.getType(0, tileTo);
 
 	let toType = state > 2 ? airType : groundType;
 	let hasType = state > 2 ? groundType : airType;
 
 	if (fromType > GRND) {
-		if (substanceTypes[hasType].effects.has(fromType) && (toType <= GRND || toType == fromType) ) {
-			let fromQuant = currentLevel.getTileQuantity(layer, tileFrom);
+		if (substanceTypes[hasType].effects.has(fromType) && (toType <= GRND || toType == fromType || substanceTypes[toType].effects.has(fromType)) ) {
 			let spreadQuant = state > 2 ? 4 : 1;
-			if (state < 4 && fromQuant > spreadQuant) {
-				let toQuant = (airType == fromType) ? currentLevel.getTileQuantity(layer, tileTo) : 0;
+			if (state < 4 && currentLevel.getQuantity(layer, tileFrom) > spreadQuant) {
+				let toQuant = (airType == fromType) ? currentLevel.getQuantity(layer, tileTo) : 0;
 				
-				if (!toQuant) currentLevel.setTileType(layer, tileTo, fromType);
-				else currentLevel.setTileLife(layer, tileTo, currentLevel.getTileLife(layer, tileTo) + Math.random());
+				if (!toQuant) currentLevel.spawnTile(layer, tileTo, fromType);
+				else currentLevel.addLife(layer, tileTo, Math.random());
 		
-				currentLevel.setTileQuantity(layer, tileTo, toQuant + spreadQuant);
+				currentLevel.setQuantity(layer, tileTo, toQuant + spreadQuant); //Why can't this bad addQuantity?
 				if (state === 3) {
-					currentLevel.setTileQuantity(layer, tileFrom, fromQuant - spreadQuant * 1.2);
-				} else currentLevel.setTileQuantity(layer, tileFrom, fromQuant - spreadQuant);
+					currentLevel.addQuantity(layer, tileFrom, -spreadQuant * 1.2);
+				} else currentLevel.addQuantity(layer, tileFrom, -spreadQuant);
 				
 			} else if (state == 4) {
-				if (Math.random() > 0.98) 
-					currentLevel.setTileType(1, tileTo, fromType);
+				if (Math.random() > 0.98) currentLevel.spawnTile(1, tileTo, fromType);
 			}
 		} else {
 			elementInteraction(layer, tileFrom, tileTo);
@@ -251,9 +260,9 @@ function elementSpread(layer, tileFrom, tileTo) {
 }
 
 function elementInteraction(fromLayer, tileFrom, tileTo) {
-	let fromType = currentLevel.getTileType(fromLayer, tileFrom);
-	let groundType = currentLevel.getTileType(0, tileTo);
-	let airType = currentLevel.getTileType(fromLayer, tileTo);
+	let fromType = currentLevel.getType(fromLayer, tileFrom);
+	let groundType = currentLevel.getType(0, tileTo);
+	let airType = currentLevel.getType(fromLayer, tileTo);
 
 	if (fromType <= GRND || airType < GRND || groundType < GRND) return;
 	let result;
@@ -270,7 +279,12 @@ function elementInteraction(fromLayer, tileFrom, tileTo) {
 		if (substanceTypes[groundType].effects.has(result)) {
 			let resultLayer = substanceTypes[result].state < 3 ? 0 : 1;
 			
-			currentLevel.setTileType(resultLayer, tileTo, result);
+			if (currentLevel.getType(resultLayer, tileTo) == result) {
+				currentLevel.addQuantity(resultLayer, tileTo, substanceTypes[result].quantity);
+			} else {
+				currentLevel.spawnTile(resultLayer, tileTo, result);
+			}
+
 		}
 	}
 }
