@@ -11,11 +11,10 @@
 	<script src='level.js'></script>
 	<script src='physics.js'></script>
 	<script src='collision.js'></script>
+	<script src='camera.js'></script>
 	<script src='ui.js'></script>
 	<script src='input.js'></script>
 	<script>
-		
-		let canvas, ctx, w, h;
 
 		let player = {
 			_hp: 100,
@@ -57,8 +56,8 @@
 			window.addEventListener('orientationchange', resizeCanvas);
 			resizeCanvas()
 
-			currentLevel = generateLevel(Math.floor(w / GRID_SIZE), Math.floor(h / GRID_SIZE));
-			currentLevel.spawnTile(1, Math.ceil(currentLevel.length/2), FIRE);
+			currentLevel = generateLevel(128, 128);
+			currentLevel.spawnTile(1, tileAtCoords(currentLevel.width/2 * GRID_SIZE, currentLevel.height/2 * GRID_SIZE), FIRE);
 			currentLevel.spawnTile(0, Math.ceil(currentLevel.length/2) + 11, WATER);
 			currentLevel.spawnTile(0, Math.ceil(currentLevel.length/2) - 11, OIL);
 
@@ -71,14 +70,17 @@
 
 		function update() {
 			physicsUpdate();
+			updateCamera();
 			draw();
 		}
 
 		function draw() {
 			ctx.clearRect(0, 0, w, h);
+			ctx.translate(-panX, -panY);
 			currentLevel.draw(0)
 			player.draw();
 			currentLevel.draw(1);
+			ctx.translate(panX, panY);
 			drawUI();
 		}
 
@@ -94,16 +96,6 @@
 			}
 
 			return array;
-		}
-
-		function resizeCanvas(e) {
-			let widthRemainder = window.innerWidth % GRID_SIZE,
-				heightRemainder = window.innerHeight % GRID_SIZE;
-
-			canvas.width = w = window.innerWidth - widthRemainder;
-			canvas.height = h = window.innerHeight - heightRemainder;
-			canvas.style.marginTop = (widthRemainder/2) + 'px';
-			canvas.style.marginLeft = (heightRemainder/2) + 'px';
 		}
 
 		function clamp (value, min, max) {

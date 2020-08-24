@@ -42,8 +42,11 @@ class SubstanceLayer {
 			let type = this.getType(e);
 			if (type <= 0) continue;
 			ctx.fillStyle = substColors[type];
-			let x = e % currentLevel.width, y = (e - x) / currentLevel.width;
-			ctx.fillRect(x * GRID_SIZE, y * GRID_SIZE, GRID_SIZE, GRID_SIZE);
+			let x = e % currentLevel.width, y = (e - x) / currentLevel.width * GRID_SIZE;
+			x *= GRID_SIZE;
+			if (objectInview(x, y)) {
+				ctx.fillRect(x, y, GRID_SIZE, GRID_SIZE);
+			}
 		}
 	}
 
