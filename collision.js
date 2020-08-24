@@ -20,7 +20,7 @@ function objectTileCollision(object) {
 					object.velocity = object.velocity.add(correction);
 					object.velocity = object.velocity.multiply(object.friction);
 				} else {
-					//other tile effects (e.g. damage)
+					if (airType == FIRE) player.hp -= 0.125;
 				}
 			}
 		}

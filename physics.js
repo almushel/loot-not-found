@@ -142,7 +142,10 @@ class Vector2 {
 function physicsUpdate() {
 	updateElements();
 	let cv = control();
-	if (cv) player.velocity = player.velocity.add(cv.multiply(player.acceleration));
+	if (cv) {
+		player.rotation = player.rotation.add(cv).normalize();
+		player.velocity = player.velocity.add(cv.multiply(player.acceleration));
+	}
 	player.position = player.position.add(player.velocity);
 	player.velocity.length *= player.friction;
 

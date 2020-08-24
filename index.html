@@ -35,6 +35,12 @@
 				ctx.beginPath()
 				ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
 				ctx.fill();
+				
+				ctx.strokeStyle = 'white';
+				ctx.beginPath();
+				ctx.moveTo(this.x, this.y);
+				ctx.lineTo(this.x + this.rotation.x * this.size, this.y + this.rotation.y * this.size);
+				ctx.stroke();
 			},
 			die() {
 				this.isDead = true
