@@ -68,6 +68,7 @@ class GameLevel {
 	}
 
 	spawnTile(layer, index, type) {
+		//TO DO check for legal tile
 		this._layers[layer].spawnTile(index, type);
 	}
 
@@ -130,6 +131,7 @@ function generateLevel(width, height) {
 }
 
 function generateTileGrid(rooms, width, height) {
+	const lootSize = GRID_SIZE/4;
 	let lootLeft = 404;
 	let level = new GameLevel(width * ROOM_SIZE, height * ROOM_SIZE);
 	let roomIndex = 0;
@@ -144,6 +146,11 @@ function generateTileGrid(rooms, width, height) {
 				for (let rx = 0; rx < ROOM_SIZE; rx++) {
 					let tileIndex = roomIndex + (ry * ROOM_SIZE * width) + rx;
 					if (rx == 0 || ry == 0 || rx == ROOM_SIZE - 1 || ry == ROOM_SIZE - 1) level.spawnTile(0, tileIndex, WOOD);
+					else if (lootLeft > 0 && Math.random() > 0.9) {
+						let lx = tileIndex % level.width, ly = (tileIndex - x) / level.width;
+						level.objects.push(new LootPiece(Math.floor(lx) * GRID_SIZE + lootSize, Math.floor(ly) * GRID_SIZE + lootSize));
+						lootLeft--;
+					}
 				}
 			}
 
@@ -151,6 +158,23 @@ function generateTileGrid(rooms, width, height) {
 		}
 		//Skip the full row of rooms
 		roomIndex += ROOM_SIZE * width * GRID_SIZE;
+	}
+
+	while(lootLeft > 0) {
+		let x = y = GRID_SIZE;
+		if (Math.random() > 0.6) {
+			x += Math.random() * ((ROOM_SIZE * GRID_SIZE) - GRID_SIZE), y += Math.random() * (level.height * GRID_SIZE - GRID_SIZE);
+		} else {
+			x += Math.random() * (level.width * GRID_SIZE - GRID_SIZE) , y += Math.random() * (ROOM_SIZE * GRID_SIZE - GRID_SIZE);
+		}
+		
+		x -= x % GRID_SIZE;
+		y -= y % GRID_SIZE;
+		
+		if (Math.random() > 0.5) x = ((1 + level.width - 2) * GRID_SIZE) - x;
+		if (Math.random() > 0.5) y = ((1 + level.height - 2) * GRID_SIZE) - y;
+		level.objects.push(new LootPiece(x + lootSize * 2, y + lootSize * 2));
+		lootLeft--;
 	}
 
 	return sealLevel(level);

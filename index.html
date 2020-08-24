@@ -71,7 +71,6 @@
 			currentLevel.spawnTile(1, centerTile - 1, FIRE);
 			currentLevel.spawnTile(0, centerTile + 11, WATER);
 			currentLevel.spawnTile(0, centerTile - 11, OIL);
-			currentLevel.objects.push(new LootPiece(GRID_SIZE * 50, GRID_SIZE * 50));
 			
 			player.position.x = currentLevel.width/2 * GRID_SIZE - (GRID_SIZE * 24);
 			player.position.y = currentLevel.height/2 * GRID_SIZE + GRID_SIZE;

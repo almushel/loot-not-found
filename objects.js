@@ -17,7 +17,7 @@ class LootPiece {
     }
 
     draw() {
-        if (!this.active) return;
+        if (!this.active || !objectInview(this.x, this.y)) return;
         ctx.fillStyle = 'gold';
         ctx.fillRect(this.position.x - this.size/2, this.position.y - this.size/2, this.size, this.size);
     }
