@@ -114,35 +114,13 @@ class GameLevel {
 }
 
 function generateLevel(width, height) {
-	let newLevel = new GameLevel(width, height);
-	let index = 0;
-	for (let y = 0; y < height; y++) {
-		for (let x = 0; x < width; x++) {
-			if (x == 0 || y == 0 || x == width - 1 || y == height - 1) {
-				newLevel.spawnTile(0, index, CNCRT);
-			} else if (Math.round(Math.abs(x - width / 2)) == 10) {
-				if (Math.abs(Math.floor(y - height / 2)) < 3);
-				else if (y >= 15 && y <= height - 15) newLevel.spawnTile(0, index, CNCRT);
-			}
-			else if (Math.round(Math.abs(x - width / 2)) < 10) {
-				if (y == 15 || y == height - 15) newLevel.spawnTile(0, index, CNCRT);
-				else if (y >= 15 && y <= height - 15) newLevel.spawnTile(0, index, WOOD);
-			}
-			index++;
-		}
-	}
-
-	return newLevel;
-}
-
-function generateLevel2(width, height) {
 	let rooms = [];
 	let index = 0;
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
 			if (x == 0 || y == 0 || x == width - 1 || y == height - 1) rooms[index] = 0;
-			else if ((x % 2 == 0) || (y % 2 == 0)) rooms[index] = 0;
-			else rooms[index] = 1;
+			else if ((x % 2 != 0) && (y % 2 != 0)) rooms[index] = 1;
+			else rooms[index] = 0;
 			index++;
 		}
 	}
@@ -159,6 +137,7 @@ function generateTileGrid(rooms, width, height) {
 				roomIndex += ROOM_SIZE;
 				continue;
 			}
+
 			for (let ry = 0; ry < ROOM_SIZE; ry++) {
 				for (let rx = 0; rx < ROOM_SIZE; rx++) {
 					let tileIndex = roomIndex + (ry * ROOM_SIZE * width) + rx;
@@ -170,6 +149,20 @@ function generateTileGrid(rooms, width, height) {
 		}
 		//Skip the full row of rooms
 		roomIndex += ROOM_SIZE * width * GRID_SIZE;
+	}
+
+	return sealLevel(level);
+}
+
+function sealLevel(level) {
+	let index = 0;
+	for (let y = 0; y < level.height; y++) {
+ 		for (let x = 0; x < level.width; x++) {
+			 if (x == 0 || y == 0 || x == level.width - 1 || y == level.height - 1) {
+				 level.spawnTile(0, index, CNCRT);
+			 }
+			 index++;
+		 }
 	}
 
 	return level;

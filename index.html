@@ -56,7 +56,7 @@
 			window.addEventListener('orientationchange', resizeCanvas);
 			resizeCanvas()
 
-			currentLevel = generateLevel2(8, 8);
+			currentLevel = generateLevel(9, 9);
 			let centerTile = tileAtCoords(currentLevel.width/2 * GRID_SIZE, currentLevel.height/2 * GRID_SIZE);
 			currentLevel.spawnTile(1, centerTile - 1, FIRE);
 			currentLevel.spawnTile(0, centerTile + 11, WATER);
