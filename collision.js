@@ -1,3 +1,32 @@
+function objectTileCollision(object) {
+	let nearTiles = tilesNearPosition(object);
+	for (tile of nearTiles) {
+		let groundType = currentLevel.getType(0, tile);
+		let airType = currentLevel.getType(1, tile);
+
+		if (groundType > GRND || airType > GRND) {
+			let tileRect = getTileCollider(tile);;
+			let collision = checkCollision(object.collider, tileRect);
+			if (collision.hit) {
+				if (substanceTypes[groundType].state == 1) {
+					let correction = new Vector2(object.x - tileRect.x, object.y - tileRect.y);
+					if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
+					else correction.x = 0;
+		
+					correction = correction.normalize();
+					correction.x *= collision.overlap.x;
+					correction.y *= collision.overlap.y;
+					object.position = object.position.add(correction);
+					object.velocity = object.velocity.add(correction);
+					object.velocity = object.velocity.multiply(object.friction);
+				} else {
+					//other tile effects (e.g. damage)
+				}
+			}
+		}
+	}
+}
+
 function getTileCollider(tileIndex) {
 	let x = tileIndex % currentLevel.width;
 	let y = Math.floor(tileIndex / currentLevel.width);

@@ -146,35 +146,11 @@ function physicsUpdate() {
 	player.position = player.position.add(player.velocity);
 	player.velocity.length *= player.friction;
 
-	let nearTiles = tilesNearPosition(player);
-	for (tile of nearTiles) {
-		let groundType = currentLevel.getType(0, tile);
-		let airType = currentLevel.getType(1, tile);
-
-		if (groundType > GRND || airType > GRND) {
-			let tileRect = getTileCollider(tile);;
-			let collision = checkCollision(player.collider, tileRect);
-			if (collision.hit) {
-				if (substanceTypes[groundType].state == 1) {
-					let correction = new Vector2(player.x - tileRect.x, player.y - tileRect.y);
-					if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
-					else correction.x = 0;
-		
-					correction = correction.normalize();
-					correction.x *= collision.overlap.x;
-					correction.y *= collision.overlap.y;
-					player.position = player.position.add(correction);
-					player.velocity = player.velocity.add(correction);
-					player.velocity = player.velocity.multiply(player.friction);
-				} else {
-					if (groundType == WATER) player.velocity = player.velocity.multiply(0.99);
-					if (groundType == ICE) player.velocity = player.velocity.multiply(1.05);
-				}
-				if (substanceTypes[airType]) {
-					if (airType == FIRE) player.hp--;
-					//if (airType == SMOKE) player.hp -= 0.125;
-				}
-			}
+	objectTileCollision(player);
+	for (let object of currentLevel.objects) {
+		let collision = checkCollision(player.collider, object);
+		if (collision.hit) {
+			object.onCollision(player);
 		}
 	}
 }

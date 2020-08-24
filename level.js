@@ -56,6 +56,7 @@ class SubstanceLayer {
 
 class GameLevel {
 	_layers = [];
+	objects = [];
 	width = 0;
 	height = 0;
 
@@ -129,6 +130,7 @@ function generateLevel(width, height) {
 }
 
 function generateTileGrid(rooms, width, height) {
+	let lootLeft = 404;
 	let level = new GameLevel(width * ROOM_SIZE, height * ROOM_SIZE);
 	let roomIndex = 0;
 	for (let y = 0; y < height; y++) {
