@@ -250,7 +250,7 @@ function elementSpread(layer, tileFrom, tileTo) {
 				currentLevel.addQuantity(layer, tileFrom, -spreadQuant);
 				
 			} else if (state == 4) {
-				if (Math.random() > 0.98) currentLevel.spawnTile(1, tileTo, fromType);
+				if (Math.random() > 0.96) currentLevel.spawnTile(1, tileTo, fromType);
 			}
 		} else {
 			elementInteraction(layer, tileFrom, tileTo);

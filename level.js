@@ -1,3 +1,4 @@
+const ROOM_SIZE = 16;
 const GRID_SIZE = 16;
 
 class SubstanceLayer {
@@ -132,6 +133,46 @@ function generateLevel(width, height) {
 	}
 
 	return newLevel;
+}
+
+function generateLevel2(width, height) {
+	let rooms = [];
+	let index = 0;
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
+			if (x == 0 || y == 0 || x == width - 1 || y == height - 1) rooms[index] = 0;
+			else if ((x % 2 == 0) || (y % 2 == 0)) rooms[index] = 0;
+			else rooms[index] = 1;
+			index++;
+		}
+	}
+
+	return generateTileGrid(rooms, width, height);
+}
+
+function generateTileGrid(rooms, width, height) {
+	let level = new GameLevel(width * ROOM_SIZE, height * ROOM_SIZE);
+	let roomIndex = 0;
+	for (let y = 0; y < height; y++) {
+		for (let x = 0; x < width; x++) {
+			if (rooms[width * y + x] == 0) {
+				roomIndex += ROOM_SIZE;
+				continue;
+			}
+			for (let ry = 0; ry < ROOM_SIZE; ry++) {
+				for (let rx = 0; rx < ROOM_SIZE; rx++) {
+					let tileIndex = roomIndex + (ry * ROOM_SIZE * width) + rx;
+					if (rx == 0 || ry == 0 || rx == ROOM_SIZE - 1 || ry == ROOM_SIZE - 1) level.spawnTile(0, tileIndex, WOOD);
+				}
+			}
+
+			roomIndex += ROOM_SIZE;
+		}
+		//Skip the full row of rooms
+		roomIndex += ROOM_SIZE * width * GRID_SIZE;
+	}
+
+	return level;
 }
 
 function tilesNearPosition(position) {

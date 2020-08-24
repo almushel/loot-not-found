@@ -56,10 +56,11 @@
 			window.addEventListener('orientationchange', resizeCanvas);
 			resizeCanvas()
 
-			currentLevel = generateLevel(128, 128);
-			currentLevel.spawnTile(1, tileAtCoords(currentLevel.width/2 * GRID_SIZE, currentLevel.height/2 * GRID_SIZE), FIRE);
-			currentLevel.spawnTile(0, Math.ceil(currentLevel.length/2) + 11, WATER);
-			currentLevel.spawnTile(0, Math.ceil(currentLevel.length/2) - 11, OIL);
+			currentLevel = generateLevel2(8, 8);
+			let centerTile = tileAtCoords(currentLevel.width/2 * GRID_SIZE, currentLevel.height/2 * GRID_SIZE);
+			currentLevel.spawnTile(1, centerTile - 1, FIRE);
+			currentLevel.spawnTile(0, centerTile + 11, WATER);
+			currentLevel.spawnTile(0, centerTile - 11, OIL);
 
 			
 			player.position.x = currentLevel.width/2 * GRID_SIZE - (GRID_SIZE * 24);
