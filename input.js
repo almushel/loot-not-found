@@ -25,7 +25,7 @@ function control() {
 	if (controls.d) av.y += 1;
 
 	if (controls.interact) {
-		currentLevel.spawnTile(1, tileAtCoords(player.x + player.rotation.x * player.size * 1.5,
+		currentLevel.spawnTile(tileAtCoords(player.x + player.rotation.x * player.size * 1.5,
 												player.y + player.rotation.y * player.size * 1.5), FIRE);
 	}
 

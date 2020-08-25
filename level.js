@@ -9,9 +9,14 @@ class SubstanceLayer {
 	}
 
 	spawnTile(index, type) {
-		this.grid[index * this._stride] = type;
-		if (substanceTypes[type]) this.setQuantity(index, substanceTypes[type].quantity);
-		if (substanceTypes[type]) this.setLife(index, substanceTypes[type].life);
+		let typeIndex = index * this._stride;
+		if (this.grid[typeIndex] == type && substanceTypes[type]) {
+			this.grid[++typeIndex] += substanceTypes[type].quantity * Math.random() / 2;
+		} else {
+			this.grid[typeIndex++] = type;
+			if (substanceTypes[type]) this.grid[typeIndex++] = substanceTypes[type].quantity;
+			if (substanceTypes[type]) this.grid[typeIndex] = substanceTypes[type].life;
+		}
 	}
 
 	getType(levelIndex) {
@@ -36,6 +41,13 @@ class SubstanceLayer {
 
 	setLife(levelIndex, value) {
 		this.grid[levelIndex * this._stride + 2] = value;
+	}
+
+	resetTile(index) {
+		let tileIndex = index * this._stride;
+		this.grid[tileIndex++] = GRND;
+		this.grid[tileIndex++] = GRND;
+		this.grid[tileIndex] = GRND;
 	}
 
 	draw() {
@@ -67,9 +79,18 @@ class GameLevel {
 		this._layers[1] = new SubstanceLayer(width * height); //air
 	}
 
-	spawnTile(layer, index, type) {
+	spawnTile(index, type) {
 		//TO DO check for legal tile
-		this._layers[layer].spawnTile(index, type);
+		let layer = (substanceTypes[type].state < 3) ? 0 : 1;
+		
+		let groundType = this.getType(0, index);
+		let airType = this.getType(1, index);
+		if ((substanceTypes[groundType].effects.has(type)) &&
+			(airType <= GRND || substanceTypes[airType].effects.has(type)) ) {
+			this._layers[layer].spawnTile(index, type);
+		} else {
+			elementInteraction(type, index);
+		}
 	}
 
 	getType(layer, index) {
@@ -104,6 +125,10 @@ class GameLevel {
 
 	setQuantity(layer, index, quantity) {
 		this._layers[layer].setQuantity(index, quantity);
+	}
+
+	resetTile(layer, index) {
+		this._layers[layer].resetTile(index);
 	}
 
 	draw(layer) {
@@ -145,8 +170,11 @@ function generateTileGrid(rooms, width, height) {
 			for (let ry = 0; ry < ROOM_SIZE; ry++) {
 				for (let rx = 0; rx < ROOM_SIZE; rx++) {
 					let tileIndex = roomIndex + (ry * ROOM_SIZE * width) + rx;
-					if (rx == 0 || ry == 0 || rx == ROOM_SIZE - 1 || ry == ROOM_SIZE - 1) level.spawnTile(0, tileIndex, WOOD);
-					else if (lootLeft > 0 && Math.random() > 0.9) {
+					if (rx == 0 || ry == 0 || rx == ROOM_SIZE - 1 || ry == ROOM_SIZE - 1) {
+						level.setType(0, tileIndex, WOOD);
+						level.setQuantity(0, tileIndex, 1);
+						level.setLife(0, tileIndex, substanceTypes[WOOD].life);
+					}else if (lootLeft > 0 && Math.random() > 0.9) {
 						let lx = tileIndex % level.width, ly = (tileIndex - x) / level.width;
 						level.objects.push(new LootPiece(Math.floor(lx) * GRID_SIZE + lootSize, Math.floor(ly) * GRID_SIZE + lootSize));
 						lootLeft--;
@@ -185,7 +213,9 @@ function sealLevel(level) {
 	for (let y = 0; y < level.height; y++) {
  		for (let x = 0; x < level.width; x++) {
 			 if (x == 0 || y == 0 || x == level.width - 1 || y == level.height - 1) {
-				 level.spawnTile(0, index, CNCRT);
+				level.setType(0, index, CNCRT);
+				level.setQuantity(0, index, 1);
+				level.setLife(0, index, substanceTypes[CNCRT].life);
 			 }
 			 index++;
 		 }

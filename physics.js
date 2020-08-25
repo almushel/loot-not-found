@@ -180,7 +180,6 @@ function updateElements() {
 }
 
 function elementEffectOnTile(tileIndex, elementType) {
-	let lifeTime = currentLevel.getLife(1, tileIndex);
 	let tileHP = currentLevel.getLife(0, tileIndex);
 	let state = substanceTypes[elementType].state;
 
@@ -188,19 +187,19 @@ function elementEffectOnTile(tileIndex, elementType) {
 	if (state >= 3) { currentLevel.addLife(1, tileIndex, -decay);}
 	if (state == 4) { 
 		if (tileHP <= 0) {
-			currentLevel.setType(0, tileIndex, GRND);
-			currentLevel.setLife(0, tileIndex, 0);
-			currentLevel.setLife(1, tileIndex, 0);
+			currentLevel.resetTile(0, tileIndex);
+			currentLevel.resetTile(1, tileIndex);
 		} else if (currentLevel.getType(0, tileIndex) > GRND) {
-			currentLevel.setLife(0, tileIndex, tileHP - decay);
-			currentLevel.setLife(1, tileIndex, tileHP + decay);
+			currentLevel.addLife(0, tileIndex, -decay);
+			currentLevel.addLife(1, tileIndex, decay);
 		}
 	}
 
+	let lifeTime = currentLevel.getLife(1, tileIndex);
 	if (lifeTime <= 0) {
 		let deathEffect = substanceTypes[elementType].ondeath
-		if (deathEffect >= GRND) currentLevel.spawnTile(1, tileIndex, deathEffect);
-		else currentLevel.setType(1, tileIndex, NOEFF);
+		if (deathEffect >= GRND) currentLevel.spawnTile(tileIndex, deathEffect);
+		else currentLevel.setType(1, tileIndex, GRND);
 	}
 }
 
@@ -209,6 +208,7 @@ function elementSpread(layer, tileFrom, tileTo) {
 	let state;
 	if (substanceTypes[fromType] && (state = substanceTypes[fromType].state) == 1) return;
 	
+	//TO DO: Make this make more sense
 	let airType = currentLevel.getType(layer, tileTo);
 	let groundType = currentLevel.getType(0, tileTo);
 
@@ -221,7 +221,7 @@ function elementSpread(layer, tileFrom, tileTo) {
 			if (state < 4 && currentLevel.getQuantity(layer, tileFrom) > spreadQuant) {
 				let toQuant = (airType == fromType) ? currentLevel.getQuantity(layer, tileTo) : 0;
 				
-				if (!toQuant) currentLevel.spawnTile(layer, tileTo, fromType);
+				if (!toQuant) currentLevel.spawnTile(tileTo, fromType);
 				else currentLevel.addLife(layer, tileTo, Math.random());
 		
 				currentLevel.setQuantity(layer, tileTo, toQuant + spreadQuant); //Why can't this bad addQuantity?
@@ -229,24 +229,22 @@ function elementSpread(layer, tileFrom, tileTo) {
 				currentLevel.addQuantity(layer, tileFrom, -spreadQuant);
 				
 			} else if (state == 4) {
-				if (Math.random() > 0.96) currentLevel.spawnTile(1, tileTo, fromType);
+				if (Math.random() > 0.96) currentLevel.spawnTile(tileTo, fromType);
 			}
 		} else {
-			elementInteraction(layer, tileFrom, tileTo);
+			elementInteraction(fromType, tileTo);
 		}
 	}
 }
 
-function elementInteraction(fromLayer, tileFrom, tileTo) {
-	let fromType = currentLevel.getType(fromLayer, tileFrom);
+function elementInteraction(fromType, tileTo) {
 	let groundType = currentLevel.getType(0, tileTo);
-	let airType = currentLevel.getType(fromLayer, tileTo);
+	let airType = currentLevel.getType(1, tileTo);
 
-	if (fromType <= GRND || airType < GRND || groundType < GRND) return;
 	let result;
 	if (effectMatrix[fromType]) {
-		if ((result = effectMatrix[fromType][airType])) {
-			result = effectMatrix[fromType][groundType]
+		if (!(result = effectMatrix[fromType][groundType])) {
+			result = effectMatrix[fromType][airType];
 		}
 	} else {
 		console.log('invalid substance type for interaction');
@@ -254,15 +252,6 @@ function elementInteraction(fromLayer, tileFrom, tileTo) {
 	}
 
 	if (result && result > GRND) {
-		if (substanceTypes[groundType].effects.has(result)) {
-			let resultLayer = substanceTypes[result].state < 3 ? 0 : 1;
-			
-			if (currentLevel.getType(resultLayer, tileTo) == result) {
-				currentLevel.addQuantity(resultLayer, tileTo, substanceTypes[result].quantity * Math.random() / 2);
-			} else {
-				currentLevel.spawnTile(resultLayer, tileTo, result);
-			}
-
-		}
+		currentLevel.spawnTile(tileTo, result);
 	}
 }

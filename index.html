@@ -45,7 +45,7 @@
 			die() {
 				this.isDead = true
 				let dIndex = tileAtCoords(this.position.x, this.position.y);
-				currentLevel.spawnTile(0, dIndex, BLOOD);
+				currentLevel.spawnTile(dIndex, BLOOD);
 			},
 			get x() { return this.position.x },
 			get y() { return this.position.y },
@@ -68,9 +68,9 @@
 
 			currentLevel = generateLevel(9, 9);
 			let centerTile = tileAtCoords(currentLevel.width/2 * GRID_SIZE, currentLevel.height/2 * GRID_SIZE);
-			currentLevel.spawnTile(1, centerTile - 1, FIRE);
-			currentLevel.spawnTile(0, centerTile + 11, WATER);
-			currentLevel.spawnTile(0, centerTile - 11, OIL);
+			currentLevel.spawnTile(centerTile - 1, FIRE);
+			currentLevel.spawnTile(centerTile + 11, WATER);
+			currentLevel.spawnTile(centerTile - 11, OIL);
 			
 			player.position.x = currentLevel.width/2 * GRID_SIZE - (GRID_SIZE * 24);
 			player.position.y = currentLevel.height/2 * GRID_SIZE + GRID_SIZE;
