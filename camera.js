@@ -11,8 +11,8 @@ function updateCamera() {
 }
 
 function objectInview(x, y) {
-    return (x > panX  - GRID_SIZE && y > panY - GRID_SIZE &&
-            x < w + panX + GRID_SIZE && y < h + panY + GRID_SIZE);
+    return (x > panX  - TILE_SIZE && y > panY - TILE_SIZE &&
+            x < w + panX + TILE_SIZE && y < h + panY + TILE_SIZE);
 }
 
 function resizeCanvas(e) {

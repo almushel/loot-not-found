@@ -1,6 +1,6 @@
 const MIN_ROOM_SIZE = 6;
 const ROOM_SIZE = 16;
-const GRID_SIZE = 16;
+const TILE_SIZE = 16;
 
 class SubstanceLayer {
 	constructor(size) {
@@ -56,10 +56,10 @@ class SubstanceLayer {
 			let type = this.getType(e);
 			if (type <= 0) continue;
 			ctx.fillStyle = substColors[type];
-			let x = e % currentLevel.width, y = (e - x) / currentLevel.width * GRID_SIZE;
-			x *= GRID_SIZE;
+			let x = e % currentLevel.width, y = (e - x) / currentLevel.width * TILE_SIZE;
+			x *= TILE_SIZE;
 			if (objectInview(x, y)) {
-				ctx.fillRect(x, y, GRID_SIZE, GRID_SIZE);
+				ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
 			}
 		}
 	}
@@ -176,18 +176,19 @@ function generateTileGrid(rooms, width, height) {
 				continue;
 			}
 
+			let wallType = SOLID_SUBST[Math.floor(Math.random() * SOLID_SUBST.length)];
 			let left = rooms[room][0], top = rooms[room][1], right = rooms[room][2], bottom = rooms[room][3];
 			for (let ry = top; ry < bottom; ry++) {
 				for (let rx = left; rx < right; rx++) {
 					let tileIndex = roomIndex + (ry * ROOM_SIZE * width) + rx;
 					if (rx >= left || ry >= top || rx <= right - 1 || ry <= bottom - 1) {
 						if (rx == left || ry == top || rx == right - 1 || ry == bottom - 1) {
-							level.setType(0, tileIndex, WOOD);
+							level.setType(0, tileIndex, wallType);
 							level.setQuantity(0, tileIndex, 1);
-							level.setLife(0, tileIndex, substanceTypes[WOOD].life);
+							level.setLife(0, tileIndex, substanceTypes[wallType].life);
 						} else if (lootLeft > 0 && Math.random() > 0.9) {
 							let lx = tileIndex % level.width, ly = (tileIndex - x) / level.width;
-							let loot = new LootPiece(Math.floor(lx) * GRID_SIZE, Math.floor(ly) * GRID_SIZE);
+							let loot = new LootPiece(Math.floor(lx) * TILE_SIZE, Math.floor(ly) * TILE_SIZE);
 							loot.x += loot.size;
 							loot.y += loot.size;
 							
@@ -201,22 +202,22 @@ function generateTileGrid(rooms, width, height) {
 			roomIndex += ROOM_SIZE;
 		}
 		//Skip the full row of rooms
-		roomIndex += ROOM_SIZE * width * GRID_SIZE;
+		roomIndex += ROOM_SIZE * width * ROOM_SIZE;
 	}
 
 	while(lootLeft > lootLeft) {
-		let x = y = GRID_SIZE;
+		let x = y = TILE_SIZE;
 		if (Math.random() > 0.6) {
-			x += Math.random() * ((ROOM_SIZE * GRID_SIZE) - GRID_SIZE), y += Math.random() * (level.height * GRID_SIZE - GRID_SIZE);
+			x += Math.random() * ((ROOM_SIZE * TILE_SIZE) - TILE_SIZE), y += Math.random() * (level.height * TILE_SIZE - TILE_SIZE);
 		} else {
-			x += Math.random() * (level.width * GRID_SIZE - GRID_SIZE) , y += Math.random() * (ROOM_SIZE * GRID_SIZE - GRID_SIZE);
+			x += Math.random() * (level.width * TILE_SIZE - TILE_SIZE) , y += Math.random() * (ROOM_SIZE * TILE_SIZE - TILE_SIZE);
 		}
 		
-		x -= x % GRID_SIZE;
-		y -= y % GRID_SIZE;
+		x -= x % TILE_SIZE;
+		y -= y % TILE_SIZE;
 		
-		if (Math.random() > 0.5) x = ((1 + level.width - 2) * GRID_SIZE) - x;
-		if (Math.random() > 0.5) y = ((1 + level.height - 2) * GRID_SIZE) - y;
+		if (Math.random() > 0.5) x = ((1 + level.width - 2) * TILE_SIZE) - x;
+		if (Math.random() > 0.5) y = ((1 + level.height - 2) * TILE_SIZE) - y;
 		level.objects.push(new LootPiece(x, y));
 		lootLeft--;
 	}
@@ -240,13 +241,14 @@ function sealLevel(level) {
 	return level;
 }
 
+//NOTE: This is problematic for objects larger than TILE_SIZE
 function tilesNearPosition(position) {
 	let index = tileAtCoords(position.x, position.y);
 	return tilesNearIndex(index);
 }
 
 function tilesNearIndex(index) {
-	let tiles = [];
+	let tiles = []; 
 	for (let y = -1; y < 2; y++) {
 		for (let x = -1; x < 2; x++) {
 			let checkTile = index + (currentLevel.width * y);
@@ -261,5 +263,5 @@ function tilesNearIndex(index) {
 }
 
 function tileAtCoords(x, y) {
-	return Math.floor(Math.floor(y / GRID_SIZE) * currentLevel.width + Math.floor(x / GRID_SIZE));
+	return Math.floor(Math.floor(y / TILE_SIZE) * currentLevel.width + Math.floor(x / TILE_SIZE));
 }

@@ -5,7 +5,7 @@ class LootPiece {
     
     constructor(x, y) {
         this.position = new Vector2(x, y);
-        this.size = GRID_SIZE / 2;
+        this.size = TILE_SIZE / 2;
     }
 
     onCollision(withObject) {

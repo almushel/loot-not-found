@@ -18,9 +18,10 @@ const BMIST = 15; //Blood mist
 const E_STM = 16; //Electrified steam
 
 const ALL_SUBST = [GRND, CNCRT, WOOD, METAL, GLASS, WATER, FIRE, SMOKE, GAS, STEAM, SHOCK];
+const SOLID_SUBST = [CNCRT, WOOD, METAL, GLASS];
 
 const EMPTY_SET = new Set();
-const SOLID_SUBST_SET = new Set([GRND, CNCRT, WOOD, METAL, GLASS]);
+const SOLID_SUBST_SET = new Set(SOLID_SUBST);
 const GAS_SUBST_SET = new Set([FIRE, SMOKE, GAS, STEAM, SHOCK]);
 const ALL_SUBST_SET = new Set(ALL_SUBST);
 
@@ -59,9 +60,9 @@ substanceTypes[SHOCK] = {life: 60, 		quantity: 60, state: 4, effects: EMPTY_SET,
 
 const substColors = new Array(substanceTypes.length).fill('#000000');
 substColors[GRND] = '#202020';
-substColors[CNCRT] = '#505050';
+substColors[CNCRT] = '#505250';
 substColors[WOOD] = '#402920';
-substColors[METAL] = '#707070';
+substColors[METAL] = '#8585a0';
 substColors[GLASS] = 'skyblue';
 substColors[WATER] = '#4040b0';
 substColors[BLOOD] = '#330000';

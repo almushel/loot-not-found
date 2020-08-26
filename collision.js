@@ -20,7 +20,7 @@ function objectTileCollision(object) {
 					object.velocity = object.velocity.add(correction);
 					object.velocity = object.velocity.multiply(object.friction);
 				} else {
-					if (airType == FIRE) player.hp -= 0.125;
+					if (airType == FIRE) object.hp -= 0.125;
 				}
 			}
 		}
@@ -31,8 +31,8 @@ function getTileCollider(tileIndex) {
 	let x = tileIndex % currentLevel.width;
 	let y = Math.floor(tileIndex / currentLevel.width);
 	let tileRect = {
-		x: (x * GRID_SIZE) + (GRID_SIZE / 2), y: (y * GRID_SIZE) + (GRID_SIZE / 2),
-		type: 'rect', width: GRID_SIZE, height: GRID_SIZE
+		x: (x * TILE_SIZE) + (TILE_SIZE / 2), y: (y * TILE_SIZE) + (TILE_SIZE / 2),
+		type: 'rect', width: TILE_SIZE, height: TILE_SIZE
 	};
 
 	return tileRect;
@@ -80,13 +80,14 @@ function circleOverlap(circle1, circle2) {
 }
 
 function circleRectOverlap(circle, rect) {
-	let dist = new Vector2(circle.x - rect.x, circle.y - rect.y);
-	let ang = Math.atan2(dist.y, dist.x) + Math.PI;
+	let distX = circle.x - rect.x;
+	let distY = circle.y - rect.y;
+	let ang = Math.atan2(distY, distX) + Math.PI;
 	let width = rect.width / 2 + Math.abs(Math.cos(ang) * circle.radius),
 		height = rect.height / 2 + Math.abs(Math.sin(ang) * circle.radius);
 
-	if (Math.abs(dist.x) <= width && Math.abs(dist.y) <= height) {
-		return { hit: true, overlap: new Vector2(width - Math.abs(dist.x), height - Math.abs(dist.y)) };
+	if (Math.abs(distX) <= width && Math.abs(distY) <= height) {
+		return { hit: true, overlap: new Vector2(width - Math.abs(distX), height - Math.abs(distY)) };
 	}
 
 	return { hit: false, overlap: 0 };
