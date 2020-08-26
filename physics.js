@@ -138,6 +138,8 @@ class Vector2 {
 			this.y = nv.y;
 		}
 	}
+
+	get angle () { return Math.atan2(this.y, this.x) }
 }
 
 function physicsUpdate() {
@@ -149,6 +151,7 @@ function physicsUpdate() {
 	}
 	player.position = player.position.add(player.velocity);
 	player.velocity.length *= player.friction;
+	if (player.held) player.held.updateHeld();
 
 	objectTileCollision(player);
 	for (let object of currentLevel.objects) {
@@ -163,6 +166,7 @@ function updateElements() {
 	for (let e = currentLevel.length - 1; e >= 0; e--) {
 		for (let layer = 0; layer < 2; layer++) {
 			let type = currentLevel.getType(layer, e);
+			if (currentLevel.getLife(layer, e) <= 0) currentLevel.resetTile(layer, e);
 			if (type <= GRND) continue; //No effect in this tile
 
 			if (layer == 1) elementEffectOnTile(e, type);

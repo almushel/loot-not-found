@@ -22,6 +22,7 @@
 			_loot: 0,
 			color: '#4060C0',
 			size: 16,
+			held: null,
 			position: new Vector2(TILE_SIZE * 2, TILE_SIZE * 2),
 			rotation: new Vector2(0, 1),
 			velocity: new Vector2(0, 0),
@@ -41,6 +42,7 @@
 				ctx.moveTo(this.x, this.y);
 				ctx.lineTo(this.x + this.rotation.x * this.size, this.y + this.rotation.y * this.size);
 				ctx.stroke();
+				if (this.held && this.held.active) this.held.drawHeld();
 			},
 			die() {
 				this.isDead = true
@@ -74,6 +76,8 @@
 			
 			player.position.x = currentLevel.width/2 * TILE_SIZE;
 			player.position.y = currentLevel.height/2 * TILE_SIZE;
+
+			currentLevel.objects.push(new Hammer(player.x + TILE_SIZE * 4, player.y));
 
 			setInterval(update, 1000 / 60);
 		}
@@ -113,6 +117,28 @@
 
 		function clamp (value, min, max) {
 			return Math.min(max, Math.max(value, min));
+		}
+
+		function lerp(start, end, weight) {
+    		return (1 - clamp(weight, 0, 1)) * start + clamp(weight, 0, 1) * end;
+		}
+
+		function smoothStart(weight, magnitude) {
+			let sWeight = weight;
+			for (let i = 0; i < magnitude; i++) {
+				sWeight *= weight;
+			}
+
+			return sWeight;
+		}
+
+		function smoothStop(weight, magnitude) {
+			let sWeight = 1 - weight;
+			for(let i = 0; i < magnitude; i++) {
+				sWeight *= (1-weight);
+			}
+
+			return 1 - sWeight;
 		}
 
 	</script>

@@ -25,8 +25,9 @@ function control() {
 	if (controls.d) av.y += 1;
 
 	if (controls.interact) {
-		currentLevel.spawnTile(tileAtCoords(player.x + player.rotation.x * player.size * 1.5,
-												player.y + player.rotation.y * player.size * 1.5), FIRE);
+		let ix = player.x + player.rotation.x * player.size * 1.5; iy = player.y + player.rotation.y * player.size * 1.5;
+		if (player.held) player.held.use();
+		else currentLevel.spawnTile(tileAtCoords(ix, iy), FIRE);
 	}
 
 	return av.normalize();
