@@ -1,3 +1,4 @@
+const MIN_ROOM_SIZE = 6;
 const ROOM_SIZE = 16;
 const GRID_SIZE = 16;
 
@@ -145,9 +146,17 @@ function generateLevel(width, height) {
 	let index = 0;
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
-			if (x == 0 || y == 0 || x == width - 1 || y == height - 1) rooms[index] = 0;
-			else if ((x % 2 != 0) && (y % 2 != 0)) rooms[index] = 1;
-			else rooms[index] = 0;
+			if (x == 0 || y == 0 || x == width - 1 || y == height - 1 || (x == Math.floor(width/2) && y == Math.floor(height/2)) ) {
+				rooms.push([0,0,0,0]);				
+			}
+			else {
+				let width = Math.floor(MIN_ROOM_SIZE + Math.random() * (ROOM_SIZE - MIN_ROOM_SIZE)),
+					height = Math.floor(MIN_ROOM_SIZE + Math.random() * (ROOM_SIZE - MIN_ROOM_SIZE)),
+					left = Math.floor(Math.random() * (ROOM_SIZE - width)),
+					top = Math.floor(Math.random() * (ROOM_SIZE - height));
+			
+				rooms.push([left, top, left + width, top + height]);
+			}
 			index++;
 		}
 	}
@@ -156,28 +165,35 @@ function generateLevel(width, height) {
 }
 
 function generateTileGrid(rooms, width, height) {
-	const lootSize = GRID_SIZE/4;
 	let lootLeft = 404;
 	let level = new GameLevel(width * ROOM_SIZE, height * ROOM_SIZE);
 	let roomIndex = 0;
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
-			if (rooms[width * y + x] == 0) {
+			let room = width * y + x;
+			if (rooms[room] == 0) {
 				roomIndex += ROOM_SIZE;
 				continue;
 			}
 
-			for (let ry = 0; ry < ROOM_SIZE; ry++) {
-				for (let rx = 0; rx < ROOM_SIZE; rx++) {
+			let left = rooms[room][0], top = rooms[room][1], right = rooms[room][2], bottom = rooms[room][3];
+			for (let ry = top; ry < bottom; ry++) {
+				for (let rx = left; rx < right; rx++) {
 					let tileIndex = roomIndex + (ry * ROOM_SIZE * width) + rx;
-					if (rx == 0 || ry == 0 || rx == ROOM_SIZE - 1 || ry == ROOM_SIZE - 1) {
-						level.setType(0, tileIndex, WOOD);
-						level.setQuantity(0, tileIndex, 1);
-						level.setLife(0, tileIndex, substanceTypes[WOOD].life);
-					}else if (lootLeft > 0 && Math.random() > 0.9) {
-						let lx = tileIndex % level.width, ly = (tileIndex - x) / level.width;
-						level.objects.push(new LootPiece(Math.floor(lx) * GRID_SIZE + lootSize, Math.floor(ly) * GRID_SIZE + lootSize));
-						lootLeft--;
+					if (rx >= left || ry >= top || rx <= right - 1 || ry <= bottom - 1) {
+						if (rx == left || ry == top || rx == right - 1 || ry == bottom - 1) {
+							level.setType(0, tileIndex, WOOD);
+							level.setQuantity(0, tileIndex, 1);
+							level.setLife(0, tileIndex, substanceTypes[WOOD].life);
+						} else if (lootLeft > 0 && Math.random() > 0.9) {
+							let lx = tileIndex % level.width, ly = (tileIndex - x) / level.width;
+							let loot = new LootPiece(Math.floor(lx) * GRID_SIZE, Math.floor(ly) * GRID_SIZE);
+							loot.x += loot.size;
+							loot.y += loot.size;
+							
+							level.objects.push(loot);
+							lootLeft--;
+						}
 					}
 				}
 			}
@@ -188,7 +204,7 @@ function generateTileGrid(rooms, width, height) {
 		roomIndex += ROOM_SIZE * width * GRID_SIZE;
 	}
 
-	while(lootLeft > 0) {
+	while(lootLeft > lootLeft) {
 		let x = y = GRID_SIZE;
 		if (Math.random() > 0.6) {
 			x += Math.random() * ((ROOM_SIZE * GRID_SIZE) - GRID_SIZE), y += Math.random() * (level.height * GRID_SIZE - GRID_SIZE);
@@ -201,7 +217,7 @@ function generateTileGrid(rooms, width, height) {
 		
 		if (Math.random() > 0.5) x = ((1 + level.width - 2) * GRID_SIZE) - x;
 		if (Math.random() > 0.5) y = ((1 + level.height - 2) * GRID_SIZE) - y;
-		level.objects.push(new LootPiece(x + lootSize * 2, y + lootSize * 2));
+		level.objects.push(new LootPiece(x, y));
 		lootLeft--;
 	}
 

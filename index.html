@@ -72,8 +72,8 @@
 			currentLevel.spawnTile(centerTile + 11, WATER);
 			currentLevel.spawnTile(centerTile - 11, OIL);
 			
-			player.position.x = currentLevel.width/2 * GRID_SIZE - (GRID_SIZE * 24);
-			player.position.y = currentLevel.height/2 * GRID_SIZE + GRID_SIZE;
+			player.position.x = currentLevel.width/2 * GRID_SIZE;
+			player.position.y = currentLevel.height/2 * GRID_SIZE;
 
 			setInterval(update, 1000 / 60);
 		}
