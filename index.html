@@ -42,7 +42,7 @@
 				ctx.moveTo(this.x, this.y);
 				ctx.lineTo(this.x + this.rotation.x * this.size, this.y + this.rotation.y * this.size);
 				ctx.stroke();
-				if (this.held && this.held.active) this.held.drawHeld();
+				if (this.held) this.held.drawHeld();
 			},
 			die() {
 				this.isDead = true
