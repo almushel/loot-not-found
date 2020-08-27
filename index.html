@@ -8,7 +8,9 @@
 			padding: 0;
 		}
 	</style>
+	<script src='globals.js'></script>
 	<script src='physics.js'></script>
+	<script src='particles.js'></script>
 	<script src='objects.js'></script>
 	<script src='collision.js'></script>
 	<script src='level.js'></script>
@@ -16,7 +18,6 @@
 	<script src='ui.js'></script>
 	<script src='input.js'></script>
 	<script>
-
 		let player = {
 			_hp: 100,
 			_loot: 0,
@@ -28,15 +29,16 @@
 			velocity: new Vector2(0, 0),
 			acceleration: .4,
 			friction: 0.96,
-			collider: { type: 'circle', physics: 'dynamic',
-						get radius() {return player.size}, get x() {return player.x}, get y() { return player.y},
-						},
+			collider: {
+				type: 'circle', physics: 'dynamic',
+				get radius() { return player.size }, get x() { return player.x }, get y() { return player.y },
+			},
 			draw() {
 				ctx.fillStyle = this.isDead ? '#203060' : this.color;
 				ctx.beginPath()
 				ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
 				ctx.fill();
-				
+
 				ctx.strokeStyle = 'white';
 				ctx.beginPath();
 				ctx.moveTo(this.x, this.y);
@@ -51,31 +53,32 @@
 			},
 			get x() { return this.position.x },
 			get y() { return this.position.y },
-			get hp() {return this._hp},
+			get hp() { return this._hp },
 			set hp(val) {
 				this._hp = clamp(val, 0, 100);
 				if (this._hp == 0 && !this.isDead) this.die();
 			},
 			get loot() { return this._loot; },
-			set loot(val) {this._loot = clamp(val, 0, 404); },
+			set loot(val) { this._loot = clamp(val, 0, 404); },
 		}
 
 		this.onload = () => {
 			canvas = document.getElementById('canvas');
 			ctx = canvas.getContext('2d');
+			particles = new ParticleSystem(9 * 16 * 16);
 
 			window.addEventListener('resize', resizeCanvas);
 			window.addEventListener('orientationchange', resizeCanvas);
 			resizeCanvas()
 
 			currentLevel = generateLevel(9, 9);
-			let centerTile = tileAtCoords(currentLevel.width/2 * TILE_SIZE, currentLevel.height/2 * TILE_SIZE);
+			let centerTile = tileAtCoords(currentLevel.width / 2 * TILE_SIZE, currentLevel.height / 2 * TILE_SIZE);
 			currentLevel.spawnTile(centerTile - 1, FIRE);
 			currentLevel.spawnTile(centerTile + 11, WATER);
 			currentLevel.spawnTile(centerTile - 11, OIL);
-			
-			player.position.x = currentLevel.width/2 * TILE_SIZE;
-			player.position.y = currentLevel.height/2 * TILE_SIZE;
+
+			player.position.x = currentLevel.width / 2 * TILE_SIZE;
+			player.position.y = currentLevel.height / 2 * TILE_SIZE;
 
 			currentLevel.objects.push(new Hammer(player.x + TILE_SIZE * 4, player.y));
 
@@ -95,6 +98,7 @@
 			for (object of currentLevel.objects) {
 				object.draw();
 			}
+			particles.draw();
 			player.draw();
 			currentLevel.draw(1);
 			ctx.translate(panX, panY);
@@ -115,12 +119,12 @@
 			return array;
 		}
 
-		function clamp (value, min, max) {
+		function clamp(value, min, max) {
 			return Math.min(max, Math.max(value, min));
 		}
 
 		function lerp(start, end, weight) {
-    		return (1 - clamp(weight, 0, 1)) * start + clamp(weight, 0, 1) * end;
+			return (1 - clamp(weight, 0, 1)) * start + clamp(weight, 0, 1) * end;
 		}
 
 		function smoothStart(weight, magnitude) {
@@ -134,8 +138,8 @@
 
 		function smoothStop(weight, magnitude) {
 			let sWeight = 1 - weight;
-			for(let i = 0; i < magnitude; i++) {
-				sWeight *= (1-weight);
+			for (let i = 0; i < magnitude; i++) {
+				sWeight *= (1 - weight);
 			}
 
 			return 1 - sWeight;

@@ -1,7 +1,3 @@
-let canvas, ctx, w, h;
-
-let panX, panY;
-
 function updateCamera() {
     panX = Math.floor(player.x - w/2);
     clamp(panX, 0, Math.floor(w/2));
@@ -10,9 +6,10 @@ function updateCamera() {
     clamp(panY, 0, Math.floor(h/2));
 }
 
-function objectInview(x, y) {
-    return (x > panX  - TILE_SIZE && y > panY - TILE_SIZE &&
-            x < w + panX + TILE_SIZE && y < h + panY + TILE_SIZE);
+function objectInView(x, y) {
+    const padding = TILE_SIZE;
+    return (x > panX - padding && y > panY - padding &&
+            x < w + panX + padding && y < h + panY + padding);
 }
 
 function resizeCanvas(e) {

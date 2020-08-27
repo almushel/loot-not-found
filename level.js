@@ -1,7 +1,3 @@
-const MIN_ROOM_SIZE = 6;
-const ROOM_SIZE = 16;
-const TILE_SIZE = 16;
-
 class SubstanceLayer {
 	constructor(size) {
 		this._stride = 3; /*1: Effect Type, 2: quantity, 3: Lifetime */
@@ -58,7 +54,7 @@ class SubstanceLayer {
 			ctx.fillStyle = substColors[type];
 			let x = e % currentLevel.width, y = (e - x) / currentLevel.width * TILE_SIZE;
 			x *= TILE_SIZE;
-			if (objectInview(x, y)) {
+			if (objectInView(x, y)) {
 				ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
 			}
 		}

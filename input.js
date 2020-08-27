@@ -1,9 +1,3 @@
-let controls = {
-	u: 0, d: 0, l: 0, r: 0, //directions
-	interact: 0,//Interact with world object
-	use: 0, //Use held item
-}
-
 this.addEventListener('keydown', (e) => { setControl(e.which, 1); })
 this.addEventListener('keyup', (e) => { setControl(e.which, 0); })
 

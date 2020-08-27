@@ -17,7 +17,7 @@ class LootPiece {
 	}
 
 	draw() {
-		if (!this.active || !objectInview(this.x, this.y)) return;
+		if (!this.active || !objectInView(this.x, this.y)) return;
 		ctx.fillStyle = 'gold';
 		ctx.fillRect(this.position.x - this.size / 2, this.position.y - this.size / 2, this.size, this.size);
 	}
@@ -64,13 +64,15 @@ class Hammer {
 	updateHeld() {
 		if (!this.active) return;
 		this.timer++;
-		if (this.timer == this.useTime - (this.useTime / 10)) {
+		if (this.timer == this.useTime - Math.floor(this.useTime / 6)) {
 			let ix = player.x + player.rotation.x * this.size; iy = player.y + player.rotation.y * this.size;
 			let index = tileAtCoords(ix, iy);
 			let tiles = tilesNearIndex(index);
 			for (let tile of tiles) {
 				let type = currentLevel.getType(0, tile);
-				if (type == WOOD || type == CNCRT || type == GLASS) currentLevel.addLife(0, tile, -25);
+				if (type == WOOD || type == CNCRT || type == GLASS) {
+					currentLevel.addLife(0, tile, -25);
+				}
 			}
 		} else if (this.timer == this.useTime + 8) {
 			this.timer = 0;
