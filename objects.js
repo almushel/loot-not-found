@@ -64,7 +64,7 @@ class Hammer {
 	updateHeld() {
 		if (!this.active) return;
 		this.timer++;
-		if (this.timer == this.useTime - Math.floor(this.useTime / 6)) {
+		if (this.timer == Math.floor(this.useTime / 2)) {
 			let ix = player.x + player.rotation.x * this.size; iy = player.y + player.rotation.y * this.size;
 			let index = tileAtCoords(ix, iy);
 			let tiles = tilesNearIndex(index);

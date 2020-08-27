@@ -7,6 +7,10 @@ function drawUI() {
     ctx.translate(-offset*2, 0);
     drawLoot();
     ctx.translate(offset, -offset);
+
+    ctx.translate(canvas.width - offset * 2, canvas.height - offset * 2)
+    drawHeldItem();
+    ctx.translate(-canvas.width + offset * 2, -canvas.height + offset * 2)
 }
 
 function drawHP () {
@@ -44,4 +48,19 @@ function drawLoot() {
     ctx.fillStyle = 'gold';
     
     ctx.fillText(player.loot, left + lootWidth + fontSize/2, top);
+}
+
+function drawHeldItem() {
+    const fontSize = w/50;
+    let item = player.held ? player.held.constructor.name : 'No Item';
+    ctx.font = fontSize + 'px Arial';
+    let boxSize = ctx.measureText('Hammer').width + fontSize;
+    ctx.fillStyle = player.color;
+    ctx.strokeStyle = 'white';
+    ctx.rect(-boxSize/2, -boxSize/4, boxSize, boxSize/2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'white';
+    ctx.fillText(item, 0, 0);
 }

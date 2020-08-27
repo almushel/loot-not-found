@@ -67,10 +67,10 @@ substanceTypes[SHOCK] = { life: 60, quantity: 60, state: 4, effects: EMPTY_SET, 
 
 const substColors = new Array(substanceTypes.length).fill('#000000');
 substColors[GRND] = '#202020';
-substColors[CNCRT] = '#505250';
+substColors[CNCRT] = '#454545';
 substColors[WOOD] = '#402920';
 substColors[METAL] = '#8585a0';
-substColors[GLASS] = 'skyblue';
+substColors[GLASS] = '#9090ff';
 substColors[WATER] = '#4040b0';
 substColors[BLOOD] = '#330000';
 substColors[ICE] = '#f0f0ff';

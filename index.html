@@ -34,17 +34,23 @@
 				get radius() { return player.size }, get x() { return player.x }, get y() { return player.y },
 			},
 			draw() {
+				ctx.shadowColor = 'black';
+				ctx.shadowBlur = 2;
+				
+				if (this.held) this.held.drawHeld();
+				
 				ctx.fillStyle = this.isDead ? '#203060' : this.color;
 				ctx.beginPath()
 				ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
 				ctx.fill();
+
+				ctx.shadowBlur = 0;
 
 				ctx.strokeStyle = 'white';
 				ctx.beginPath();
 				ctx.moveTo(this.x, this.y);
 				ctx.lineTo(this.x + this.rotation.x * this.size, this.y + this.rotation.y * this.size);
 				ctx.stroke();
-				if (this.held) this.held.drawHeld();
 			},
 			die() {
 				this.isDead = true
@@ -95,10 +101,10 @@
 			ctx.clearRect(0, 0, w, h);
 			ctx.translate(-panX, -panY);
 			currentLevel.draw(0)
+			particles.draw();
 			for (object of currentLevel.objects) {
 				object.draw();
 			}
-			particles.draw();
 			player.draw();
 			currentLevel.draw(1);
 			ctx.translate(panX, panY);
