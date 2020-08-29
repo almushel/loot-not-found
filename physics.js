@@ -79,8 +79,8 @@ function physicsUpdate() {
 		player.velocity = player.velocity.add(cv.multiply(player.acceleration));
 	}
 	player.position = player.position.add(player.velocity);
-	player.velocity.length *= player.friction;
-	if (player.held) player.held.updateHeld();
+	player.velocity.length *= AIR_RESISTANCE;
+	if (player.held >= 0) player.items[player.held].updateHeld();
 
 	objectTileCollision(player);
 	for (let object of currentLevel.objects) {

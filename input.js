@@ -20,7 +20,7 @@ function control() {
 
 	if (controls.interact) {
 		let ix = player.x + player.rotation.x * player.size * 1.5; iy = player.y + player.rotation.y * player.size * 1.5;
-		if (player.held) player.held.use();
+		if (player.held >= 0) player.items[player.held].use();
 		//else currentLevel.spawnTile(tileAtCoords(ix, iy), FIRE);
 	}
 

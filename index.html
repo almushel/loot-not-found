@@ -23,12 +23,12 @@
 			_loot: 0,
 			color: '#4060C0',
 			size: 16,
-			held: null,
+			held: -1,
+			items: [],
 			position: new Vector2(TILE_SIZE * 2, TILE_SIZE * 2),
 			rotation: new Vector2(0, 1),
 			velocity: new Vector2(0, 0),
 			acceleration: .4,
-			friction: 0.96,
 			collider: {
 				type: 'circle', physics: 'dynamic',
 				get radius() { return player.size }, get x() { return player.x }, get y() { return player.y },
@@ -42,7 +42,7 @@
 				ctx.shadowColor = '#000000';
 				ctx.shadowBlur = 2;
 				
-				if (this.held) this.held.drawHeld();
+				if (this.held >= 0) this.items[this.held].drawHeld();
 
 				ctx.fillStyle = color;
 
@@ -181,7 +181,12 @@
 			if (total[1]) total[1] = clamp(Math.floor(total[1] / colors.length), 0, 255);
 			if (total[2]) total[2] = clamp(Math.floor(total[2] / colors.length), 0, 255);
 
-			return ('#' + total[0].toString(16) + total[1].toString(16) + total[2].toString(16));
+			let string = '#';
+			for (let num of total) {
+				if (num < 16) string += '0';
+				string += num.toString(16);
+			}
+			return string;
 		}
 
 		function hexColorToInts(color) {

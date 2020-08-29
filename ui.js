@@ -52,9 +52,9 @@ function drawLoot() {
 
 function drawHeldItem() {
     const fontSize = w/50;
-    let item = player.held ? player.held.constructor.name : 'No Item';
+    let item = player.items[player.held] ? player.items[player.held].constructor.name : 'No Item';
     ctx.font = fontSize + 'px Arial';
-    let boxSize = ctx.measureText('Hammer').width + fontSize;
+    let boxSize = ctx.measureText('FireBomb').width + fontSize;
     ctx.fillStyle = player.color;
     ctx.strokeStyle = 'white';
     ctx.rect(-boxSize/2, -boxSize/4, boxSize, boxSize/2);

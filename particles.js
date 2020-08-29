@@ -30,11 +30,13 @@ class ParticleSystem {
 
 	draw() {
 		for (let p = 0; p < this.data.length; p += this._stride) {
-			if (this.data[p] > GRND) {
-				let tileType = currentLevel.geType(1, tileAtCoords(this.data[p + 1], this.data[p + 2]));
-				ctx.fillStyle = averageHexColors(substColors[tileType].concat(this.data[p]));
-				ctx.fillStyle = substColors[this.data[p]];
-				if (objectInView(this.data[p + 1], this.data[p + 2])) ctx.fillRect(this.data[p + 1], this.data[p + 2], this.data[p + 5], this.data[p + 5]);
+			if (this.data[p] > GRND && objectInView(this.data[p + 1], this.data[p + 2])) {
+				let tile = tileAtCoords(Math.round(this.data[p + 1]), Math.round(this.data[p + 2]));
+				let tileType = currentLevel.getType(1, tile);
+				let color = tileType > GRND ? averageHexColors([ substColors[tileType], substColors[this.data[p]]]) : substColors[this.data[p]];
+
+				ctx.fillStyle = color;
+				ctx.fillRect(this.data[p + 1], this.data[p + 2], this.data[p + 5], this.data[p + 5]);
 			}
 		}
 	}
