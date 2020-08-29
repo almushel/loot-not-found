@@ -79,14 +79,14 @@
 
 			currentLevel = generateLevel(9, 9);
 			let centerTile = tileAtCoords(currentLevel.width / 2 * TILE_SIZE, currentLevel.height / 2 * TILE_SIZE);
-			currentLevel.spawnTile(centerTile - 1, FIRE);
 			currentLevel.spawnTile(centerTile + 11, WATER);
 			currentLevel.spawnTile(centerTile - 11, OIL);
 
 			player.position.x = currentLevel.width / 2 * TILE_SIZE;
 			player.position.y = currentLevel.height / 2 * TILE_SIZE;
 
-			currentLevel.objects.push(new Hammer(player.x + TILE_SIZE * 4, player.y));
+			currentLevel.objects.push(new Hammer(player.x - TILE_SIZE * 4, player.y));
+			currentLevel.objects.push(new FireBomb(player.x + TILE_SIZE * 4, player.y));
 
 			setInterval(update, 1000 / 60);
 		}
@@ -103,7 +103,7 @@
 			currentLevel.draw(0)
 			particles.draw();
 			for (object of currentLevel.objects) {
-				object.draw();
+				object.draw(object.position.x, object.position.y);
 			}
 			player.draw();
 			currentLevel.draw(1);

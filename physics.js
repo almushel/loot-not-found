@@ -60,6 +60,19 @@ class Vector2 {
 
 function physicsUpdate() {
 	updateElements();
+	for (let object of currentLevel.objects) {
+		if (Math.abs(object.velocity.x) > 0 || Math.abs(object.velocity.y) > 0) {
+			object.position = object.position.add(object.velocity);
+			object.velocity = object.velocity.multiply(FRICTION);
+			if (Math.abs(object.velocity.x) < 0.01) object.velocity.x = 0;
+			if (Math.abs(object.velocity.y) < 0.01) object.velocity.y = 0;
+			if (Math.abs(object.velocity.x) == 0 && Math.abs(object.velocity.y) == 0) {
+				console.log('boom')
+				object.active = true;
+				object.onCollision(null);
+			}
+		}
+	}
 	let cv = control();
 	if (cv) {
 		player.rotation = player.rotation.add(cv).normalize();
@@ -88,7 +101,6 @@ function updateElements() {
 			if (substanceTypes[type].state == 1 && currentLevel.getLife(layer, e) <= 0) {
 				let tx = e % currentLevel.width, ty = ((e - tx) / currentLevel.width) * TILE_SIZE;
 				tx *= TILE_SIZE;
-				console.clear();
 				particles.spawn([type, tx, ty, 1 - (Math.random() * 2), 1 - (Math.random() * 2), 4], 1);
 				particles.spawn([type, tx, ty, 1 - (Math.random() * 2), 1 - (Math.random() * 2), 4], 1);
 				particles.spawn([type, tx, ty, 1 - (Math.random() * 2), 1 - (Math.random() * 2), 4], 1);

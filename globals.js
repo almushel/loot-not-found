@@ -55,7 +55,7 @@ substanceTypes[WOOD] = { life: 50, quantity: 1, state: 1, effects: new Set([FIRE
 substanceTypes[METAL] = { life: 200, quantity: 1, state: 1, effects: new Set([SHOCK]), ondeath: NOEFF, };
 substanceTypes[GLASS] = { life: 25, quantity: 1, state: 1, effects: EMPTY_SET, ondeath: NOEFF, };
 substanceTypes[WATER] = { life: 100, quantity: 64, state: 2, effects: new Set([SMOKE, STEAM, SHOCK, GAS, WATER, BLOOD]), ondeath: NOEFF, };
-substanceTypes[OIL] = { life: 200, quantity: 64, state: 2, effects: new Set([SMOKE, STEAM, GAS, FIRE, OIL]), ondeath: NOEFF, };
+substanceTypes[OIL] = { life: 200, quantity: 8, state: 2, effects: new Set([SMOKE, STEAM, GAS, FIRE, OIL]), ondeath: NOEFF, };
 substanceTypes[BLOOD] = { life: 100, quantity: 64, state: 2, effects: new Set([SMOKE, STEAM, SHOCK, GAS, BLOOD]), ondeath: NOEFF, };
 substanceTypes[ICE] = { life: 100, quantity: 1, state: 2, effects: new Set([SMOKE, STEAM, SHOCK, GAS]), ondeath: WATER, };
 //energy/gas

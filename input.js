@@ -21,7 +21,7 @@ function control() {
 	if (controls.interact) {
 		let ix = player.x + player.rotation.x * player.size * 1.5; iy = player.y + player.rotation.y * player.size * 1.5;
 		if (player.held) player.held.use();
-		else currentLevel.spawnTile(tileAtCoords(ix, iy), FIRE);
+		//else currentLevel.spawnTile(tileAtCoords(ix, iy), FIRE);
 	}
 
 	return av.normalize();
