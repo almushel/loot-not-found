@@ -1,5 +1,5 @@
 function objectTileCollision(object) {
-	let nearTiles = tilesNearPosition(object);
+	let nearTiles = tilesNearPosition(object.x, object.y);
 	for (tile of nearTiles) {
 		let groundType = currentLevel.getType(0, tile);
 		let airType = currentLevel.getType(1, tile);

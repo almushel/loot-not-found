@@ -128,10 +128,21 @@ class GameLevel {
 		this._layers[layer].resetTile(index);
 	}
 
-	draw(layer) {
-		if (layer == 1) ctx.globalAlpha = 0.6;
+	draw() {
+		for (let e = 0; e < this._layers[1].length; e++) {
+			let type = this.getType(1, e);
+			if (!type) type = this.getType(0, e);
+			ctx.fillStyle = substColors[type];
+			let x = e % currentLevel.width, y = (e - x) / currentLevel.width * TILE_SIZE;
+			x *= TILE_SIZE;
+			if (objectInView(x, y)) {
+				ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+			}
+		}
+	}
+
+	drawLayer(layer) {
 		this._layers[layer].draw();
-		if (layer == 1) ctx.globalAlpha = 1;
 	}
 
 	get length() { return this.width * this.height };
@@ -238,8 +249,8 @@ function sealLevel(level) {
 }
 
 //NOTE: This is problematic for objects larger than TILE_SIZE
-function tilesNearPosition(position) {
-	let index = tileAtCoords(position.x, position.y);
+function tilesNearPosition(x, y) {
+	let index = tileAtCoords(x, y);
 	return tilesNearIndex(index);
 }
 

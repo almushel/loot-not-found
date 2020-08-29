@@ -31,6 +31,8 @@ class ParticleSystem {
 	draw() {
 		for (let p = 0; p < this.data.length; p += this._stride) {
 			if (this.data[p] > GRND) {
+				let tileType = currentLevel.geType(1, tileAtCoords(this.data[p + 1], this.data[p + 2]));
+				ctx.fillStyle = averageHexColors(substColors[tileType].concat(this.data[p]));
 				ctx.fillStyle = substColors[this.data[p]];
 				if (objectInView(this.data[p + 1], this.data[p + 2])) ctx.fillRect(this.data[p + 1], this.data[p + 2], this.data[p + 5], this.data[p + 5]);
 			}

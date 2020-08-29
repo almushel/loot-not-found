@@ -135,7 +135,7 @@ class FireBomb extends Item {
 			let index = currentLevel.objects.indexOf(this);
 			if (index >= 0) currentLevel.objects.splice(index, 1);
 		} else if (this.active) {
-			let tiles = tilesNearPosition({x: this.x, y: this.y});
+			let tiles = tilesNearPosition(this.x, this.y);
 			for (let tile of tiles) {
 				currentLevel.spawnTile(tile, OIL);
 				currentLevel.spawnTile(tile, FIRE);

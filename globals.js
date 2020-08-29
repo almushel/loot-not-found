@@ -76,10 +76,9 @@ substColors[BLOOD] = '#330000';
 substColors[ICE] = '#f0f0ff';
 substColors[FIRE] = '#d03510';
 substColors[SMOKE] = '#121212';
-substColors[GAS] = 'green';
+substColors[GAS] = '#00ff00';
 substColors[STEAM] = '#b0b0cf';
-substColors[SHOCK] = 'yellow';
-substColors[E_STM] = 'orange'; //Electrified steam
+substColors[SHOCK] = '#ffff00';
 
 //Using map to set every index to a unique array filled with NOEFF instead of a bunch of references to the same array, which I would never want
 const effectMatrix = new Array(substanceTypes.length).fill(null).map(() => { return new Array(substanceTypes.length).fill(NOEFF) });
