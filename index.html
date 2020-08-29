@@ -29,10 +29,7 @@
 			rotation: new Vector2(0, 1),
 			velocity: new Vector2(0, 0),
 			acceleration: .4,
-			collider: {
-				type: 'circle', physics: 'dynamic',
-				get radius() { return player.size }, get x() { return player.x }, get y() { return player.y },
-			},
+			type: 'circle', physics: 'dynamic',
 			draw() {
 				let color = this.isDead ? '#203060' : this.color;
 				let tileColors = nearTileColors(1, this.x, this.y);
@@ -63,6 +60,7 @@
 				let dIndex = tileAtCoords(this.position.x, this.position.y);
 				currentLevel.spawnTile(dIndex, BLOOD);
 			},
+			get radius() { return this.size },
 			get x() { return this.position.x },
 			get y() { return this.position.y },
 			get hp() { return this._hp },

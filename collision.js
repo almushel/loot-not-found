@@ -5,8 +5,8 @@ function objectTileCollision(object) {
 		let airType = currentLevel.getType(1, tile);
 
 		if (groundType > GRND || airType > GRND) {
-			let tileRect = getTileCollider(tile);;
-			let collision = checkCollision(object.collider, tileRect);
+			let tileRect = getTileCollider(tile);
+			let collision = checkCollision(object, tileRect);
 			if (collision.hit) {
 				if (substanceTypes[groundType].state == 1) {
 					let correction = new Vector2(object.x - tileRect.x, object.y - tileRect.y);
@@ -73,6 +73,7 @@ function circleOverlap(circle1, circle2) {
 	let dist = Math.hypot(distX, distY);
 	let width = circle1.radius + circle2.radius;
 	if (dist <= width) {
+		//TO-DO: This is wrong
 		return { hit: true, overlap: { x: distX, y: distY } }
 	}
 
@@ -94,11 +95,11 @@ function circleRectOverlap(circle, rect) {
 }
 
 function aabbOverlap(rect1, rect2) {
-	let distX = rect1.x - rect2.x;
-	let distY = rect1.y - rect2.y;
+	let distX = Math.abs(rect1.x - rect2.x), distY = Math.abs(rect1.y - rect2.y);
+	let width = (rect1.width + rect2.width) / 2, height = (rect1.height + rect2.height) / 2;
 
-	if (distX <= (rect1.width + rect2.width) / 2 && distY <= (rect1.height + rect2.height) / 2) {
-		return { hit: true, overlap: { x: distX, y: distY } };
+	if (distX <= width && distY <= height) {
+		return { hit: true, overlap: new Vector2(width - distX, height - distY) };
 	}
 
 	return { hit: false, overlap: 0 };

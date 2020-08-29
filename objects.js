@@ -158,12 +158,14 @@ class FireBomb extends Item {
 	draw(x, y) {
 		const capHeight = this.size/3;
 		ctx.fillStyle = 'red';
-		ctx.fillRect(x - this.size/2, y - this.size/2, this.size/2, capHeight);
+		ctx.fillRect(x - this.size/4, y - this.size/2, this.size/2, capHeight);
 		ctx.fillStyle = 'olive';
-		ctx.fillRect(x - this.size/2, y - this.size/2 + capHeight, this.size/2, this.size - capHeight);
+		ctx.fillRect(x - this.size/4, y - this.size/2 + capHeight, this.size/2, this.size - capHeight);
 	}
 
 	drawHeld() {
 		return;
 	}
+
+	get width() { return this.size/2; }
 }

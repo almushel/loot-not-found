@@ -61,13 +61,13 @@ class Vector2 {
 function physicsUpdate() {
 	updateElements();
 	for (let object of currentLevel.objects) {
-		if (Math.abs(object.velocity.x) > 0 || Math.abs(object.velocity.y) > 0) {
+		if (object.velocity.x != 0 || object.velocity.y != 0) {
 			object.position = object.position.add(object.velocity);
 			object.velocity = object.velocity.multiply(FRICTION);
+			objectTileCollision(object);
 			if (Math.abs(object.velocity.x) < 0.01) object.velocity.x = 0;
 			if (Math.abs(object.velocity.y) < 0.01) object.velocity.y = 0;
 			if (Math.abs(object.velocity.x) == 0 && Math.abs(object.velocity.y) == 0) {
-				console.log('boom')
 				object.active = true;
 				object.onCollision(null);
 			}
@@ -84,7 +84,7 @@ function physicsUpdate() {
 
 	objectTileCollision(player);
 	for (let object of currentLevel.objects) {
-		let collision = checkCollision(player.collider, object);
+		let collision = checkCollision(player, object);
 		if (collision.hit) {
 			object.onCollision(player);
 		}
