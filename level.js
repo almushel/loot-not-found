@@ -129,7 +129,10 @@ class GameLevel {
 	}
 
 	draw() {
-		for (let e = 0; e < this._layers[1].length; e++) {
+		//TO DO: Use x/y loops for more precise draw boundaries
+		let e = clamp(tileAtCoords(panX, panY), 0, this._layers[1].length);
+		let length = clamp(tileAtCoords(panX + canvas.width, panY + canvas.height), 0, this._layers[1].length);
+		for (e; e < length; e++) {
 			let type = this.getType(1, e);
 			if (!type) type = this.getType(0, e);
 			ctx.fillStyle = substColors[type];

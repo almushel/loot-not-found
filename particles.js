@@ -9,17 +9,27 @@ class ParticleSystem {
 	update() {
 		for (let p = 0; p < this.data.length; p += this._stride) {
 			if (this.data[p] > GRND) {
-				//vx
 				if (this.data[p + 3]) {
-					this.data[p + 1] += this.data[p + 3]; //x position
+					//Update x position and check for collision
+					let tx = this.data[p + 1] + this.data[p + 3]
+					if (currentLevel.getType(0, tileAtCoords(tx, this.data[p+2])) > GRND) {
+						this.data[p + 3] *= -1;
+					} else this.data[p + 1] = tx; //x position
+					
+					//Update x velocity
 					if (Math.abs(this.data[p + 3]) < 0.01) {
 						this.data[p + 3] = 0;
 					} else this.data[p + 3] *= AIR_RESISTANCE;
 				}
 
-				//vy
 				if (this.data[p + 4]) {
-					this.data[p + 2] += this.data[p + 4]; //y position
+					//Update y position and check for collision
+					let ty = this.data[p + 2] + this.data[p + 4];
+					if (currentLevel.getType(0, tileAtCoords(this.data[p+1], ty)) > GRND) {
+						this.data[p + 3] *= -1;
+					} else this.data[p + 2] = ty; //y position
+					
+					//Update y velocity
 					if (Math.abs(this.data[p + 4]) < 0.01) {
 						this.data[p + 4] = 0;
 					} else this.data[p + 4] *= AIR_RESISTANCE;
