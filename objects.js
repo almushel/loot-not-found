@@ -130,10 +130,12 @@ class FireBomb extends Item {
 		this.position.y = player.position.y + player.rotation.y * (player.size + this.size);
 		this.velocity = player.velocity.add(player.rotation.multiply(10));
 		
-		currentLevel.objects.push(this);
-		player.held--;
-		let index = player.items.indexOf(this);
-		if (index >= 0) player.items.splice(index, 1);
+		if (!objectTileCollision(this)) {
+			currentLevel.objects.push(this);
+			player.held--;
+			let index = player.items.indexOf(this);
+			if (index >= 0) player.items.splice(index, 1);
+		} 
 	}
 
 	onCollision(withObject) {

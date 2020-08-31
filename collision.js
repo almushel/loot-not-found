@@ -1,4 +1,5 @@
 function objectTileCollision(object) {
+	let hit = false;
 	let nearTiles = tilesNearPosition(object.x, object.y);
 	for (tile of nearTiles) {
 		let groundType = currentLevel.getType(0, tile);
@@ -9,6 +10,7 @@ function objectTileCollision(object) {
 			let collision = checkCollision(object, tileRect);
 			if (collision.hit) {
 				if (substanceTypes[groundType].state == 1) {
+					hit = true;
 					let correction = new Vector2(object.x - tileRect.x, object.y - tileRect.y);
 					if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
 					else correction.x = 0;
@@ -25,6 +27,8 @@ function objectTileCollision(object) {
 			}
 		}
 	}
+
+	return hit;
 }
 
 function getTileCollider(tileIndex) {
