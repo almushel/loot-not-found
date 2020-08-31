@@ -88,12 +88,6 @@ effectMatrix[WATER][FIRE] = STEAM;
 effectMatrix[FIRE][GRND] = SMOKE;
 effectMatrix[FIRE][SMOKE] = SMOKE;
 
-const controls = {
-	u: 0, d: 0, l: 0, r: 0, //directions
-	interact: 0,//Interact with world object
-	use: 0, //Use held item
-}
-
 let canvas, ctx, w, h,
 	panX, panY;
 	

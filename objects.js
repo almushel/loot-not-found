@@ -50,7 +50,7 @@ class LootPiece extends Item{
 class Hammer extends Item {
 	durability = 100;
 	useTime = 20;
-	timer = 1;
+	timer = 0;
 	rotation = new Vector2(0, 1);
 
 	constructor(x, y) {
@@ -66,12 +66,7 @@ class Hammer extends Item {
 
 	onCollision(withObject) {
 		if (withObject == player) {
-			this.timer = 0;
-			player.items.push(this);
-			player.held = player.items.length - 1;
-			
-			let index = currentLevel.objects.indexOf(this);
-			if (index >= 0) currentLevel.objects.splice(index, 1);
+			player.pickup(this);
 		}
 	}
 
@@ -79,7 +74,7 @@ class Hammer extends Item {
 		if (!this.timer) return;
 		this.timer++;
 		if (this.timer == Math.floor(this.useTime / 2)) {
-			let ix = player.x + player.rotation.x * this.size; iy = player.y + player.rotation.y * this.size;
+			let ix = player.x + player.rotation.x * this.size, iy = player.y + player.rotation.y * this.size;
 			let index = tileAtCoords(ix, iy);
 			let tiles = tilesNearIndex(index);
 			for (let tile of tiles) {
@@ -132,20 +127,14 @@ class FireBomb extends Item {
 		
 		if (!objectTileCollision(this)) {
 			currentLevel.objects.push(this);
-			player.held--;
 			let index = player.items.indexOf(this);
-			if (index >= 0) player.items.splice(index, 1);
+			if (index >= 0) player.items[index] = null;
 		} 
 	}
 
 	onCollision(withObject) {
 		if (withObject == player) {
-			this.timer = 0;
-			player.items.push(this);
-			player.held = player.items.length - 1;
-			
-			let index = currentLevel.objects.indexOf(this);
-			if (index >= 0) currentLevel.objects.splice(index, 1);
+			player.pickup(this);
 		} else if (this.active) {
 			let tiles = tilesNearPosition(this.x, this.y);
 			for (let tile of tiles) {

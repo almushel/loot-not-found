@@ -80,7 +80,7 @@ function physicsUpdate() {
 	}
 	player.position = player.position.add(player.velocity);
 	player.velocity.length *= AIR_RESISTANCE;
-	if (player.held >= 0) player.items[player.held].updateHeld();
+	if (player.items[player.held]) player.items[player.held].updateHeld();
 
 	objectTileCollision(player);
 	for (let object of currentLevel.objects) {
