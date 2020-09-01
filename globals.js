@@ -51,10 +51,10 @@ const substanceTypes = [];
 substanceTypes[GRND] = { life: Infinity, quantity: 1, state: 0, effects: new Set([WATER, OIL, BLOOD, ICE, SMOKE, STEAM, GAS]), };
 //liquid/solid
 substanceTypes[CNCRT] = { life: 100, quantity: 1, state: 1, effects: EMPTY_SET, ondeath: NOEFF, };
-substanceTypes[WOOD] = { life: 50, quantity: 1, state: 1, effects: new Set([FIRE, STEAM]), ondeath: NOEFF, };
+substanceTypes[WOOD] = { life: 50, quantity: 1, state: 1, effects: new Set([FIRE]), ondeath: NOEFF, };
 substanceTypes[METAL] = { life: 200, quantity: 1, state: 1, effects: new Set([SHOCK]), ondeath: NOEFF, };
 substanceTypes[GLASS] = { life: 25, quantity: 1, state: 1, effects: EMPTY_SET, ondeath: NOEFF, };
-substanceTypes[WATER] = { life: 100, quantity: 64, state: 2, effects: new Set([SMOKE, STEAM, SHOCK, GAS, WATER, BLOOD]), ondeath: NOEFF, };
+substanceTypes[WATER] = { life: 100, quantity: 32, state: 2, effects: new Set([SMOKE, STEAM, SHOCK, GAS, WATER, BLOOD]), ondeath: NOEFF, };
 substanceTypes[OIL] = { life: 200, quantity: 8, state: 2, effects: new Set([SMOKE, STEAM, GAS, FIRE, OIL, WATER]), ondeath: NOEFF, };
 substanceTypes[BLOOD] = { life: 100, quantity: 64, state: 2, effects: new Set([SMOKE, STEAM, SHOCK, GAS, BLOOD]), ondeath: NOEFF, };
 substanceTypes[ICE] = { life: 100, quantity: 1, state: 2, effects: new Set([SMOKE, STEAM, SHOCK, GAS]), ondeath: WATER, };
@@ -83,10 +83,12 @@ substColors[SHOCK] = '#ffff00';
 //Using map to set every index to a unique array filled with NOEFF instead of a bunch of references to the same array, which I would never want
 const effectMatrix = new Array(substanceTypes.length).fill(null).map(() => { return new Array(substanceTypes.length).fill(NOEFF) });
 //[firstEffect][secondEffect] = result
-effectMatrix[FIRE][WATER] = STEAM;
 effectMatrix[WATER][FIRE] = STEAM;
+effectMatrix[FIRE][WATER] = STEAM;
 effectMatrix[FIRE][GRND] = SMOKE;
 effectMatrix[FIRE][SMOKE] = SMOKE;
+effectMatrix[FIRE][STEAM] = STEAM;
+effectMatrix[STEAM][FIRE] = STEAM;
 
 let canvas, ctx, w, h, panX, panY;
 let particles;

@@ -240,7 +240,6 @@ class Balloon extends Item {
 			for (let tile of tiles) {
 				currentLevel.spawnTile(tile, WATER);
 			}
-			
 				
 			let index = currentLevel.objects.indexOf(this);
 			if (index >= 0) currentLevel.objects.splice(index, 1);

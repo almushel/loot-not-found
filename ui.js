@@ -46,7 +46,7 @@ function drawHP (x, y, fontSize) {
     ctx.font = fontSize + 'px Arial';
     ctx.fillStyle = 'white';
     
-    ctx.fillText('HP', 0, 0);
+    ctx.fillText('HP', x, y);
     
     ctx.fillStyle = 'black';
     ctx.fillRect(left - barWidth / 2 - 2, top - 2, barWidth + 4, fontSize/2 + 4);
