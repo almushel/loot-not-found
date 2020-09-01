@@ -11,7 +11,9 @@ class Item {
 	}
 
 	draw(x, y) {}
+	drawHeld() {}
 	updateHeld() {}
+	onCollision(withObject) {}
 
 	get width() { return this.size; }
 	get height() { return this.size; }
@@ -159,4 +161,53 @@ class FireBomb extends Item {
 	}
 
 	get width() { return this.size/2; }
+}
+
+class Grenade extends Item {
+	_blastRadius = 6;
+	active = false;
+	type = 'circle';
+	constructor(x, y) {
+		super(x, y);
+	}
+
+	use() {
+		this.position.x = player.position.x + player.rotation.x * (player.size + this.size);
+		this.position.y = player.position.y + player.rotation.y * (player.size + this.size);
+		this.velocity = player.velocity.add(player.rotation.multiply(10));
+		
+		if (!objectTileCollision(this)) {
+			currentLevel.objects.push(this);
+			let index = player.items.indexOf(this);
+			if (index >= 0) player.items[index] = null;
+		} 
+	}
+
+	onCollision(withObject) {
+		if (withObject == player) {
+			player.pickup(this);
+		} else if (this.active) {
+			let tile = tileAtCoords(this.x, this.y);
+			for (let y = -this._blastRadius + 1; y < this._blastRadius; y++) {
+				for (let x = -this._blastRadius + 1; x < this._blastRadius; x++) {
+					if (Math.abs(x) + Math.abs(y) > this._blastRadius) continue;
+					let checkTile = tile + (y * currentLevel.width) + x;
+					currentLevel.setType(1, checkTile, FIRE);
+					currentLevel.addLife(0, checkTile, -200);
+				}
+			}
+				
+			let index = currentLevel.objects.indexOf(this);
+			if (index >= 0) currentLevel.objects.splice(index, 1);
+		}
+	}
+
+	draw(x, y) {
+		ctx.fillStyle = 'olive';
+		ctx.beginPath();
+		ctx.arc(x, y, this.radius, 0, Math.PI*2, false);
+		ctx.fill();
+	}
+
+	get radius() { return this.size/2; }
 }

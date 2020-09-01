@@ -197,6 +197,7 @@ function elementInteraction(fromType, tileTo) {
 	}
 
 	if (result && result > GRND) {
+		currentLevel.resetTile(0, tileTo);
 		currentLevel.spawnTile(tileTo, result);
 	}
 }
