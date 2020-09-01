@@ -78,7 +78,6 @@ function drawHeldItem(x, y, fontSize) {
     ctx.font = fontSize + 'px Arial';
     let boxSize = ctx.measureText('FIREBOMB').width + fontSize;
     let top = y + fontSize/2, left = x + boxSize/2 + fontSize/2;
-    console.log(left + ', ' + top);
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';

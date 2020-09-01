@@ -133,13 +133,24 @@ class GameLevel {
 		let e = clamp(tileAtCoords(panX, panY), 0, this._layers[1].length);
 		let length = clamp(tileAtCoords(panX + canvas.width, panY + canvas.height), 0, this._layers[1].length);
 		for (e; e < length; e++) {
-			let type = this.getType(1, e);
-			if (!type) type = this.getType(0, e);
-			ctx.fillStyle = substColors[type];
-			let x = e % currentLevel.width, y = (e - x) / currentLevel.width * TILE_SIZE;
-			x *= TILE_SIZE;
-			if (objectInView(x, y)) {
-				ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+			let air = this.getType(1, e);
+			let ground = this.getType(0, e);
+			let color;
+			if (air > GRND) {
+				if (ground > GRND) {
+					color = averageHexColors([substColors[air], substColors[ground]]);
+				} else {
+					color = substColors[air];
+				}
+			} else if (ground > GRND) color = substColors[ground];
+
+			if (color) {
+				ctx.fillStyle = color;
+				let x = e % currentLevel.width, y = (e - x) / currentLevel.width * TILE_SIZE;
+				x *= TILE_SIZE;
+				if (objectInView(x, y)) {
+					ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+				}
 			}
 		}
 	}

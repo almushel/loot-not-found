@@ -126,7 +126,7 @@ function updateElements() {
 function elementEffectOnTile(tileIndex, elementType) {
 	let state = substanceTypes[elementType].state;
 
-	let decay = Math.random();
+	let decay = Math.random() / 2;
 	if (state >= 3) { currentLevel.addLife(1, tileIndex, -decay);}
 	if (state == 4) { 
 		if (currentLevel.getType(0, tileIndex) > GRND) {
@@ -186,18 +186,21 @@ function elementInteraction(fromType, tileTo) {
 	let groundType = currentLevel.getType(0, tileTo);
 	let airType = currentLevel.getType(1, tileTo);
 
-	let result;
+	
+	let result, interactLayer;
 	if (effectMatrix[fromType]) {
 		if (!(result = effectMatrix[fromType][groundType])) {
 			result = effectMatrix[fromType][airType];
-		}
+			interactLayer = 1;
+		} else interactLayer = 0;
 	} else {
 		console.log('invalid substance type for interaction');
 		result = NOEFF;
 	}
-
+	
 	if (result && result > GRND) {
-		currentLevel.resetTile(0, tileTo);
+		if (fromType == WATER) console.log(result + ', ' + interactLayer);
+		currentLevel.resetTile(interactLayer, tileTo);
 		currentLevel.spawnTile(tileTo, result);
 	}
 }

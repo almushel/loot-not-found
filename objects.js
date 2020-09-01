@@ -211,3 +211,48 @@ class Grenade extends Item {
 
 	get radius() { return this.size/2; }
 }
+
+class Balloon extends Item {
+	_blastRadius = 4;
+	active = false;
+	type = 'circle';
+	constructor(x, y) {
+		super(x, y);
+	}
+
+	use() {
+		this.position.x = player.position.x + player.rotation.x * (player.size + this.size);
+		this.position.y = player.position.y + player.rotation.y * (player.size + this.size);
+		this.velocity = player.velocity.add(player.rotation.multiply(10));
+		
+		if (!objectTileCollision(this)) {
+			currentLevel.objects.push(this);
+			let index = player.items.indexOf(this);
+			if (index >= 0) player.items[index] = null;
+		} 
+	}
+
+	onCollision(withObject) {
+		if (withObject == player) {
+			player.pickup(this);
+		} else if (this.active) {
+			let tiles = tilesNearPosition(this.x, this.y);
+			for (let tile of tiles) {
+				currentLevel.spawnTile(tile, WATER);
+			}
+			
+				
+			let index = currentLevel.objects.indexOf(this);
+			if (index >= 0) currentLevel.objects.splice(index, 1);
+		}
+	}
+
+	draw(x, y) {
+		ctx.fillStyle = 'blue';
+		ctx.beginPath();
+		ctx.arc(x, y, this.radius, 0, Math.PI*2, false);
+		ctx.fill();
+	}
+
+	get radius() { return this.size/2; }
+}
