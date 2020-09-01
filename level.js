@@ -129,27 +129,24 @@ class GameLevel {
 	}
 
 	draw() {
-		//TO DO: Use x/y loops for more precise draw boundaries
-		let e = clamp(tileAtCoords(panX, panY), 0, this._layers[1].length);
-		let length = clamp(tileAtCoords(panX + canvas.width, panY + canvas.height), 0, this._layers[1].length);
-		for (e; e < length; e++) {
-			let air = this.getType(1, e);
-			let ground = this.getType(0, e);
-			let color;
-			if (air > GRND) {
-				if (ground > GRND) {
-					color = averageHexColors([substColors[air], substColors[ground]]);
-				} else {
-					color = substColors[air];
-				}
-			} else if (ground > GRND) color = substColors[ground];
-
-			if (color) {
-				ctx.fillStyle = color;
-				let x = e % currentLevel.width, y = (e - x) / currentLevel.width * TILE_SIZE;
-				x *= TILE_SIZE;
-				if (objectInView(x, y)) {
-					ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+		let yMin = Math.floor(panY / TILE_SIZE), yMax = yMin + Math.floor(canvas.height / TILE_SIZE);
+		yMin = clamp(yMin, 0, currentLevel.height), yMax = clamp(yMax, 0, currentLevel.height);
+		let xMin = Math.floor(panX / TILE_SIZE), xMax = xMin + Math.floor(canvas.width / TILE_SIZE);
+		xMin = clamp(xMin, 0, currentLevel.height), xMax = clamp(xMax, 0, currentLevel.height);
+		let tile;
+		for (let y = yMin; y <= yMax; y++) {
+			tile = y * currentLevel.width
+			for (let x = xMin; x <= xMax; x++) {
+				let air = this.getType(1, tile + x);
+				let ground = this.getType(0, tile + x);
+				let color;
+				if (air > GRND) {
+					color = (ground > GRND) ? averageHexColors([substColors[air], substColors[ground]]) : substColors[air];
+				} else if (ground > GRND) color = substColors[ground];
+	
+				if (color) {
+					ctx.fillStyle = color;
+					ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
 				}
 			}
 		}
