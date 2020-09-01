@@ -54,7 +54,7 @@ class SubstanceLayer {
 			ctx.fillStyle = substColors[type];
 			let x = e % currentLevel.width, y = (e - x) / currentLevel.width * TILE_SIZE;
 			x *= TILE_SIZE;
-			if (objectInView(x, y)) {
+			if (pointInView(x, y)) {
 				ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
 			}
 		}
@@ -63,17 +63,60 @@ class SubstanceLayer {
 	get length() { return this.grid.length / this._stride; }
 }
 
+class LevelExit extends GameObject {
+	size = (TILE_SIZE * ROOM_SIZE) / 2;
+	type = 'circle';
+	physics = 'static';
+
+	constructor(x, y){
+		super(x, y);
+	}
+
+	onCollision(withObject) {
+		if (player.loot >= 404 && withObject == player) {
+			newGame();
+		}
+	}
+
+	draw() {
+		if (objectInView(this.x, this.y, this.size, this.size)) {
+			ctx.fillStyle = 'black';
+			ctx.beginPath();
+			ctx.arc(this.x, this.y, this.size, 0, Math.PI*2, false);
+			ctx.fill();
+		}
+
+		if (player.loot >= 404) {
+			ctx.fillStyle = '#ffca00';
+			let mt = ctx.measureText('EXIT');
+			let width = mt.width;
+			let height = mt.actualBoundingBoxAscent + mt.actualBoundingBoxDescent;
+			let x = clamp(this.x, panX + width/2, panX + w - width/2);
+			let y = clamp(this.y, panY + height/2, panY + h - height/2);
+				
+			ctx.fillText('EXIT', x, y);
+		}
+	}
+
+	get radius() { return this.size; }
+}
+
 class GameLevel {
 	_layers = [];
 	objects = [];
 	width = 0;
 	height = 0;
+	start = new Vector2(TILE_SIZE + (TILE_SIZE * ROOM_SIZE)/2, TILE_SIZE + (TILE_SIZE * ROOM_SIZE)/2);
+	exit = new LevelExit(0, 0);
 
 	constructor(width, height) {
 		this.width = width;
 		this.height = height;
 		this._layers[0] = new SubstanceLayer(width * height); //ground
 		this._layers[1] = new SubstanceLayer(width * height); //air
+		this.exit.x = width * TILE_SIZE - (TILE_SIZE * ROOM_SIZE)/2 - TILE_SIZE;
+		this.exit.y = height * TILE_SIZE - (TILE_SIZE * ROOM_SIZE)/2 - TILE_SIZE;
+		this.objects.push(this.exit);
 	}
 
 	spawnTile(index, type) {
@@ -129,10 +172,10 @@ class GameLevel {
 	}
 
 	draw() {
-		let yMin = Math.floor(panY / TILE_SIZE), yMax = yMin + Math.floor(canvas.height / TILE_SIZE);
-		yMin = clamp(yMin, 0, currentLevel.height), yMax = clamp(yMax, 0, currentLevel.height);
-		let xMin = Math.floor(panX / TILE_SIZE), xMax = xMin + Math.floor(canvas.width / TILE_SIZE);
-		xMin = clamp(xMin, 0, currentLevel.height), xMax = clamp(xMax, 0, currentLevel.height);
+		let yMin = Math.floor(panY / TILE_SIZE), yMax = yMin + Math.floor(canvas.height / TILE_SIZE) + 1;
+		yMin = clamp(yMin, 0, currentLevel.height), yMax = clamp(yMax, 0, currentLevel.height - 1);
+		let xMin = Math.floor(panX / TILE_SIZE), xMax = xMin + Math.floor(canvas.width / TILE_SIZE) + 1;
+		xMin = clamp(xMin, 0, currentLevel.height), xMax = clamp(xMax, 0, currentLevel.height - 1);
 		let tile;
 		for (let y = yMin; y <= yMax; y++) {
 			tile = y * currentLevel.width
@@ -150,10 +193,27 @@ class GameLevel {
 				}
 			}
 		}
+		this.drawStart();
+		//this.exit.draw();
 	}
 
 	drawLayer(layer) {
 		this._layers[layer].draw();
+	}
+
+	drawStart() {
+		const SIZE = (TILE_SIZE * ROOM_SIZE) / 2;
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillStyle = 'white';
+		if (objectInView(this.start.x, this.start.y, SIZE, SIZE)) {
+			ctx.fillStyle = 'black';
+			ctx.beginPath();
+			ctx.arc(this.start.x, this.start.y, SIZE, 0, Math.PI*2, false);
+			ctx.fill();
+			ctx.fillStyle = 'white';
+			ctx.fillText('START', this.start.x, this.start.y);
+		}
 	}
 
 	get length() { return this.width * this.height };
@@ -204,14 +264,14 @@ function generateTileGrid(rooms, width, height) {
 							level.setType(0, tileIndex, wallType);
 							level.setQuantity(0, tileIndex, 1);
 							level.setLife(0, tileIndex, substanceTypes[wallType].life);
-						} else if (lootLeft > 0 && Math.random() > 0.9) {
+						} else if (Math.random() > 0.9) {
 							let lx = tileIndex % level.width, ly = (tileIndex - x) / level.width;
 							let loot = new LootPiece(Math.floor(lx) * TILE_SIZE, Math.floor(ly) * TILE_SIZE);
 							loot.x += loot.size;
 							loot.y += loot.size;
 							
 							level.objects.push(loot);
-							lootLeft--;
+							lootLeft -= loot.value;
 						}
 					}
 				}
@@ -222,6 +282,9 @@ function generateTileGrid(rooms, width, height) {
 		//Skip the full row of rooms
 		roomIndex += ROOM_SIZE * width * ROOM_SIZE;
 	}
+
+	//Random start point
+	//Random exit point
 
 	while(lootLeft > lootLeft) {
 		let x = y = TILE_SIZE;

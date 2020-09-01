@@ -1,4 +1,4 @@
-class Item {
+class GameObject {
 	size = TILE_SIZE;
 	position = new Vector2(0, 0);
 	velocity = new Vector2(0, 0);
@@ -11,6 +11,11 @@ class Item {
 	}
 
 	draw(x, y) {}
+	drawLabel(x, y) {
+		ctx.fillStyle = 'white';
+		ctx.font = '16px Arial';
+		ctx.fillText(this.constructor.name, x, y - TILE_SIZE * 2);
+	}
 	drawHeld() {}
 	updateHeld() {}
 	onCollision(withObject) {}
@@ -23,9 +28,10 @@ class Item {
 	set y(value) { this.position.y = value; }
 }
 
-class LootPiece extends Item{
+class LootPiece extends GameObject{
 	active = true;
 	color = '#ffca00';
+	value = 4;
 
 	constructor(x, y) {
 		super(x, y);
@@ -34,13 +40,13 @@ class LootPiece extends Item{
 
 	onCollision(withObject) {
 		if (this.active && withObject == player) {
-			player.loot++;
+			player.loot += this.value;
 			this.active = false;
 		}
 	}
 
 	draw(x, y) {
-		if (this.active && objectInView(x, y)) {
+		if (this.active && pointInView(x, y)) {
 			let tile = tileAtCoords(x, y);
 			let tileType = currentLevel.getType(1, tile);
 			ctx.fillStyle = tileType > GRND ? averageHexColors([substColors[tileType], this.color]) : this.color;
@@ -49,7 +55,7 @@ class LootPiece extends Item{
 	}
 }
 
-class Hammer extends Item {
+class Hammer extends GameObject {
 	durability = 100;
 	useTime = 20;
 	timer = 0;
@@ -68,7 +74,7 @@ class Hammer extends Item {
 
 	onCollision(withObject) {
 		if (withObject == player) {
-			player.pickup(this);
+			player.pickups.push(this);
 		}
 	}
 
@@ -115,7 +121,7 @@ class Hammer extends Item {
 	}
 }
 
-class FireBomb extends Item {
+class FireBomb extends GameObject {
 	active = false;
 	constructor(x, y) {
 		super(x, y);
@@ -136,7 +142,7 @@ class FireBomb extends Item {
 
 	onCollision(withObject) {
 		if (withObject == player) {
-			player.pickup(this);
+			player.pickups.push(this);
 		} else if (this.active) {
 			let tiles = tilesNearPosition(this.x, this.y);
 			for (let tile of tiles) {
@@ -163,7 +169,7 @@ class FireBomb extends Item {
 	get width() { return this.size/2; }
 }
 
-class Grenade extends Item {
+class Grenade extends GameObject {
 	_blastRadius = 6;
 	active = false;
 	type = 'circle';
@@ -185,7 +191,7 @@ class Grenade extends Item {
 
 	onCollision(withObject) {
 		if (withObject == player) {
-			player.pickup(this);
+			player.pickups.push(this);
 		} else if (this.active) {
 			let tile = tileAtCoords(this.x, this.y);
 			for (let y = -this._blastRadius + 1; y < this._blastRadius; y++) {
@@ -212,7 +218,7 @@ class Grenade extends Item {
 	get radius() { return this.size/2; }
 }
 
-class Balloon extends Item {
+class Balloon extends GameObject {
 	_blastRadius = 4;
 	active = false;
 	type = 'circle';
@@ -234,7 +240,7 @@ class Balloon extends Item {
 
 	onCollision(withObject) {
 		if (withObject == player) {
-			player.pickup(this);
+			player.pickups.push(this);
 		} else if (this.active) {
 			let tiles = tilesNearPosition(this.x, this.y);
 			for (let tile of tiles) {

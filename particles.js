@@ -6,6 +6,10 @@ class ParticleSystem {
 		this.data.fill(0);
 	}
 
+	reset() {
+		this.data.fill(0);
+	}
+
 	update() {
 		for (let p = 0; p < this.data.length; p += this._stride) {
 			if (this.data[p] > GRND) {
@@ -40,7 +44,7 @@ class ParticleSystem {
 
 	draw() {
 		for (let p = 0; p < this.data.length; p += this._stride) {
-			if (this.data[p] > GRND && objectInView(this.data[p + 1], this.data[p + 2])) {
+			if (this.data[p] > GRND && pointInView(this.data[p + 1], this.data[p + 2])) {
 				let tile = tileAtCoords(Math.round(this.data[p + 1]), Math.round(this.data[p + 2]));
 				let tileType = currentLevel.getType(1, tile);
 				let color = tileType > GRND ? averageHexColors([ substColors[tileType], substColors[this.data[p]]]) : substColors[this.data[p]];

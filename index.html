@@ -20,15 +20,16 @@
 	<script>
 		let player = {
 			_hp: 100,
-			_loot: 0,
+			loot: 0,
 			color: '#4060C0',
 			size: 16,
 			held: -1,
+			pickups: [],
 			items: [new Hammer, new Grenade, new Balloon, new FireBomb],
 			position: new Vector2(TILE_SIZE * 2, TILE_SIZE * 2),
 			rotation: new Vector2(0, 1),
 			velocity: new Vector2(0, 0),
-			acceleration: .4,
+			acceleration: .3,
 			type: 'circle', physics: 'dynamic',
 			pickup(item) {
 				for (let i = 0; i < this.items.length; i++) {
@@ -41,6 +42,15 @@
 						if (index >= 0) currentLevel.objects.splice(index, 1);
 						break;
 					}
+				}
+			},
+			drop(index) {
+				if (this.items[index]) {
+					let item = this.items[index];
+					this.items[index] = null;
+					item.x = this.x;
+					item.y = this.y;
+					currentLevel.objects.push(item);
 				}
 			},
 			use() {
@@ -70,6 +80,10 @@
 				ctx.moveTo(this.x, this.y);
 				ctx.lineTo(this.x + this.rotation.x * this.size, this.y + this.rotation.y * this.size);
 				ctx.stroke();
+
+				for (item of this.pickups) {
+					item.drawLabel(item.x, item.y);
+				}
 			},
 			die() {
 				this.isDead = true
@@ -84,8 +98,6 @@
 				this._hp = clamp(val, 0, 100);
 				if (this._hp == 0 && !this.isDead) this.die();
 			},
-			get loot() { return this._loot; },
-			set loot(val) { this._loot = clamp(val, 0, 404); },
 		}
 
 		this.onload = () => {
@@ -97,18 +109,23 @@
 			window.addEventListener('orientationchange', resizeCanvas);
 			resizeCanvas()
 
-			currentLevel = generateLevel(9, 9);
+			newGame();
+
 			let centerTile = tileAtCoords(currentLevel.width / 2 * TILE_SIZE, currentLevel.height / 2 * TILE_SIZE);
 			currentLevel.spawnTile(centerTile + 11, WATER);
 			currentLevel.spawnTile(centerTile - 11, OIL);
-
-			player.position.x = currentLevel.width / 2 * TILE_SIZE;
-			player.position.y = currentLevel.height / 2 * TILE_SIZE;
 
 			currentLevel.objects.push(new Hammer(player.x - TILE_SIZE * 4, player.y));
 			currentLevel.objects.push(new FireBomb(player.x + TILE_SIZE * 4, player.y));
 
 			setInterval(update, 1000 / 60);
+		}
+
+		function newGame() {
+			particles.reset();
+			currentLevel = generateLevel(9, 9);
+			player.position.x = currentLevel.start.x;
+			player.position.y = currentLevel.start.y;
 		}
 
 		function update() {

@@ -2,7 +2,7 @@ const controls = {
 	u: 0, d: 0, l: 0, r: 0, //directions
 	items: 0, //toggle held items menu
 	interact: 0,//Interact with world object
-	use: 0, //Use held item
+	action: 0, //Use held item
 }
 
 this.addEventListener('keydown', e => setControl(e.which, 1));
@@ -15,8 +15,8 @@ function setControl(key, to) {
 	if (key == 87 || key == 38) { controls.u = to } //w or up
 	if (key == 83 || key == 40) { controls.d = to } //s or down
 	if (key == 69) { controls.items = to};
-	if (key == 32) { controls.interact = to } //space
-	if (key == 17) { controls.use = to } //control
+	if (key == 32) { controls.action = to } //space
+	if (key == 17) { controls.interact = to } //control
 }
 
 function control() {
@@ -27,14 +27,15 @@ function control() {
 		if (controls.l) player.held = 1;
 		if (controls.r) player.held = 2;
 		if (controls.d) player.held = 3;
+		if (controls.interact) player.drop(player.held);
 	} else {
 		if (controls.l) av.x -= 1;
 		if (controls.r) av.x += 1;
 		if (controls.u) av.y -= 1;
 		if (controls.d) av.y += 1;
-		if (controls.interact) {
-			player.use();
-		}
+		if (controls.action) player.use();
+		if (controls.interact) 
+			if (player.pickups[0]) player.pickup(player.pickups[0]);
 	}
 
 	return av.normalize();
