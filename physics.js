@@ -103,10 +103,10 @@ function updateElements() {
 			if (substanceTypes[type].state == 1 && currentLevel.getLife(layer, e) <= 0) {
 				let tx = e % currentLevel.width, ty = ((e - tx) / currentLevel.width) * TILE_SIZE;
 				tx *= TILE_SIZE;
-				particles.spawn([type, tx, ty, 1 - (Math.random() * 2), 1 - (Math.random() * 2), 4], 1);
-				particles.spawn([type, tx, ty, 1 - (Math.random() * 2), 1 - (Math.random() * 2), 4], 1);
-				particles.spawn([type, tx, ty, 1 - (Math.random() * 2), 1 - (Math.random() * 2), 4], 1);
-				particles.spawn([type, tx, ty, 1 - (Math.random() * 2), 1 - (Math.random() * 2), 4], 1);
+				particles.spawn([type, tx, ty, 1 - (Math.random() * 2), 1 - (Math.random() * 2), PARTICLE_SIZE], 1);
+				particles.spawn([type, tx, ty + PARTICLE_SIZE, 1 - (Math.random() * 2), 1 - (Math.random() * 2), PARTICLE_SIZE], 1);
+				particles.spawn([type, tx + PARTICLE_SIZE, ty + PARTICLE_SIZE, 1 - (Math.random() * 2), 1 - (Math.random() * 2), PARTICLE_SIZE], 1);
+				particles.spawn([type, tx+ PARTICLE_SIZE, ty, 1 - (Math.random() * 2), 1 - (Math.random() * 2), PARTICLE_SIZE], 1);
 				currentLevel.resetTile(layer, e);
 			}
 
@@ -203,7 +203,6 @@ function elementInteraction(fromType, tileTo) {
 		result = NOEFF;
 	}
 	if (result && result > GRND) {
-		let layer = substanceTypes[result].state > 2 ? 1 : 0;
 		currentLevel.resetTile(interactLayer, tileTo);
 		currentLevel.spawnTile(tileTo, result);
 	}

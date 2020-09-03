@@ -197,7 +197,8 @@ class Grenade extends GameObject {
 			for (let y = -this._blastRadius + 1; y < this._blastRadius; y++) {
 				for (let x = -this._blastRadius + 1; x < this._blastRadius; x++) {
 					if (Math.abs(x) + Math.abs(y) > this._blastRadius) continue;
-					let checkTile = tile + (y * currentLevel.width) + x;
+					let checkTile = tile + (y * currentLevel.width);
+					if (Math.floor(checkTile / currentLevel.width) !=  Math.floor((checkTile += x) / currentLevel.width)) continue;
 					currentLevel.setType(1, checkTile, FIRE);
 					currentLevel.addLife(0, checkTile, -200);
 				}

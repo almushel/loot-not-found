@@ -64,7 +64,7 @@ class SubstanceLayer {
 }
 
 class LevelExit extends GameObject {
-	size = (TILE_SIZE * ROOM_SIZE) / 2;
+	size = (TILE_SIZE * ROOM_SIZE) / 4;
 	type = 'circle';
 	physics = 'static';
 
@@ -107,15 +107,15 @@ class GameLevel {
 	width = 0;
 	height = 0;
 	start = new Vector2(TILE_SIZE + (TILE_SIZE * ROOM_SIZE)/2, TILE_SIZE + (TILE_SIZE * ROOM_SIZE)/2);
-	exit = new LevelExit(0, 0);
+	exit = new LevelExit(0, TILE_SIZE + (TILE_SIZE * ROOM_SIZE)/4);
 
 	constructor(width, height) {
 		this.width = width;
 		this.height = height;
 		this._layers[0] = new SubstanceLayer(width * height); //ground
 		this._layers[1] = new SubstanceLayer(width * height); //air
-		this.exit.x = width * TILE_SIZE - (TILE_SIZE * ROOM_SIZE)/2 - TILE_SIZE;
-		this.exit.y = height * TILE_SIZE - (TILE_SIZE * ROOM_SIZE)/2 - TILE_SIZE;
+		this.start.x = this.exit.x = width * TILE_SIZE / 2;
+		this.start.y = height * TILE_SIZE - (TILE_SIZE * ROOM_SIZE)/4 - TILE_SIZE;
 		this.objects.push(this.exit);
 	}
 
@@ -202,7 +202,7 @@ class GameLevel {
 	}
 
 	drawStart() {
-		const SIZE = (TILE_SIZE * ROOM_SIZE) / 2;
+		const SIZE = (TILE_SIZE * ROOM_SIZE) / 4;
 		ctx.textAlign = 'center';
 		ctx.textBaseline = 'middle';
 		ctx.fillStyle = 'white';
@@ -224,7 +224,7 @@ function generateLevel(width, height) {
 	let index = 0;
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
-			if (x == 0 || y == 0 || x == width - 1 || y == height - 1 || (x == Math.floor(width/2) && y == Math.floor(height/2)) ) {
+			if (x == 0 || y == 0 || x == width - 1 || y == height - 1) {
 				rooms.push([0,0,0,0]);				
 			}
 			else {
@@ -245,19 +245,25 @@ function generateLevel(width, height) {
 function generateTileGrid(rooms, width, height) {
 	let lootLeft = 404;
 	let level = new GameLevel(width * ROOM_SIZE, height * ROOM_SIZE);
+	//Iterate through one 16x16 room at a time
 	let roomIndex = 0;
 	for (let y = 0; y < height; y++) {
 		for (let x = 0; x < width; x++) {
 			let room = width * y + x;
-			if (rooms[room] == 0) {
+			if (rooms[room][3] == 0) {
 				roomIndex += ROOM_SIZE;
 				continue;
 			}
 
-			let wallType = SOLID_SUBST[Math.floor(Math.random() * SOLID_SUBST.length)];
+			let wallType = WALL_SUBST[Math.floor(Math.random() * WALL_SUBST.length)];
 			let left = rooms[room][0], top = rooms[room][1], right = rooms[room][2], bottom = rooms[room][3];
+			let openings = createOpenings(rooms[room]);
+			let di = Math.floor(Math.random() * openings.length);
+			let door = openings[di];
 			for (let ry = top; ry < bottom; ry++) {
 				for (let rx = left; rx < right; rx++) {
+					if (Math.abs(rx - door[0]) <= 1 && Math.abs(ry - door[1]) <= 1) continue;
+					//Offset room index [left, top] by tile index
 					let tileIndex = roomIndex + (ry * ROOM_SIZE * width) + rx;
 					if (rx >= left || ry >= top || rx <= right - 1 || ry <= bottom - 1) {
 						if (rx == left || ry == top || rx == right - 1 || ry == bottom - 1) {
@@ -276,7 +282,16 @@ function generateTileGrid(rooms, width, height) {
 					}
 				}
 			}
-
+			//Make 3 remaining openings into windows
+			for (let o = 0; o < openings.length; o++) {
+				if (wallType != METAL && o != di) {
+					let window = openings[o];
+					let wIndex = roomIndex + (window[1] * ROOM_SIZE * width) + window[0];
+					level.setType(0, wIndex, GLASS);
+					level.setLife(0, wIndex, substanceTypes[GLASS].life);
+				}
+			}
+			
 			roomIndex += ROOM_SIZE;
 		}
 		//Skip the full row of rooms
@@ -286,7 +301,7 @@ function generateTileGrid(rooms, width, height) {
 	//Random start point
 	//Random exit point
 
-	while(lootLeft > lootLeft) {
+	while(lootLeft > 0) {
 		let x = y = TILE_SIZE;
 		if (Math.random() > 0.6) {
 			x += Math.random() * ((ROOM_SIZE * TILE_SIZE) - TILE_SIZE), y += Math.random() * (level.height * TILE_SIZE - TILE_SIZE);
@@ -306,14 +321,29 @@ function generateTileGrid(rooms, width, height) {
 	return sealLevel(level);
 }
 
+function createOpenings(room) {
+	let doors = [];
+
+	//left
+	doors[0] = [room[0], Math.floor((room[1] + room[3]) / 2)];
+	//right
+	doors[1] = [room[2]-1, Math.floor((room[1] + room[3]) / 2)];
+	//top
+	doors[2] = [Math.floor((room[0] + room[2]) / 2), room[1]];
+	//Bottom
+	doors[3] = [Math.floor((room[0] + room[2]) / 2), room[3]-1];
+
+	return doors;
+}
+
 function sealLevel(level) {
 	let index = 0;
 	for (let y = 0; y < level.height; y++) {
  		for (let x = 0; x < level.width; x++) {
 			 if (x == 0 || y == 0 || x == level.width - 1 || y == level.height - 1) {
-				level.setType(0, index, CNCRT);
+				level.setType(0, index, METAL);
 				level.setQuantity(0, index, 1);
-				level.setLife(0, index, substanceTypes[CNCRT].life);
+				level.setLife(0, index, substanceTypes[METAL].life);
 			 }
 			 index++;
 		 }
@@ -333,9 +363,7 @@ function tilesNearIndex(index) {
 	for (let y = -1; y < 2; y++) {
 		for (let x = -1; x < 2; x++) {
 			let checkTile = index + (currentLevel.width * y);
-			if (Math.floor(checkTile / currentLevel.width) !=  Math.floor((checkTile + x) / currentLevel.width))
-				continue;
-			checkTile += x;
+			if (Math.floor(checkTile / currentLevel.width) !=  Math.floor((checkTile += x) / currentLevel.width)) continue;
 			if (checkTile < 0 || checkTile > currentLevel.length) continue;
 			tiles.push(checkTile);
 		}

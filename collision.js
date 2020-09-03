@@ -91,7 +91,7 @@ function circleRectOverlap(circle, rect) {
 	let width = rect.width / 2 + Math.abs(Math.cos(ang) * circle.radius),
 		height = rect.height / 2 + Math.abs(Math.sin(ang) * circle.radius);
 
-	if (Math.abs(distX) <= width && Math.abs(distY) <= height) {
+	if (Math.abs(distX) < width && Math.abs(distY) < height) {
 		return { hit: true, overlap: new Vector2(width - Math.abs(distX), height - Math.abs(distY)) };
 	}
 

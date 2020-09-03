@@ -1,6 +1,7 @@
-const MIN_ROOM_SIZE = 6;
+const MIN_ROOM_SIZE = 8;
 const ROOM_SIZE = 16;
-const TILE_SIZE = 16;
+const TILE_SIZE = 32;
+const PARTICLE_SIZE = TILE_SIZE/4;
 
 const AIR_RESISTANCE = 0.96;
 const FRICTION = 0.94;
@@ -25,6 +26,7 @@ const BMIST = 15; //Blood mist
 const E_STM = 16; //Electrified steam
 
 const ALL_SUBST = [GRND, CNCRT, WOOD, METAL, GLASS, WATER, FIRE, SMOKE, GAS, STEAM, SHOCK];
+const WALL_SUBST = [CNCRT, WOOD, METAL];
 const SOLID_SUBST = [CNCRT, WOOD, METAL, GLASS];
 
 const EMPTY_SET = new Set();
