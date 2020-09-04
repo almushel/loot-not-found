@@ -259,12 +259,23 @@ function generateTileGrid(rooms, width, height) {
 			let left = rooms[room][0], top = rooms[room][1], right = rooms[room][2], bottom = rooms[room][3];
 			let openings = createOpenings(rooms[room]);
 			let di = Math.floor(Math.random() * openings.length);
-			let door = openings[di];
+			let doorOpening = openings[di];
 			for (let ry = top; ry < bottom; ry++) {
 				for (let rx = left; rx < right; rx++) {
-					if (Math.abs(rx - door[0]) <= 1 && Math.abs(ry - door[1]) <= 1) continue;
-					//Offset room index [left, top] by tile index
 					let tileIndex = roomIndex + (ry * ROOM_SIZE * width) + rx;
+
+					if (Math.abs(rx - doorOpening[0]) <= 1 && Math.abs(ry - doorOpening[1]) <= 1) {
+						if (rx == doorOpening[0] && ry == doorOpening[1]) {
+							let dx = tileIndex % level.width, dy = (tileIndex - x) / level.width;
+							let door = new Door(Math.floor(dx) * TILE_SIZE, Math.floor(dy) * TILE_SIZE);
+							if (wallType == METAL || Math.random() > 0.6) door.locked = true;
+							door.x += door.size/2;
+							door.y += door.size/2;
+							level.objects.push(door);
+						}
+						continue;
+					}
+					//Offset room index [left, top] by tile index
 					if (rx >= left || ry >= top || rx <= right - 1 || ry <= bottom - 1) {
 						if (rx == left || ry == top || rx == right - 1 || ry == bottom - 1) {
 							level.setType(0, tileIndex, wallType);

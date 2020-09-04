@@ -29,7 +29,7 @@
 			position: new Vector2(TILE_SIZE * 2, TILE_SIZE * 2),
 			rotation: new Vector2(0, 1),
 			velocity: new Vector2(0, 0),
-			acceleration: .3,
+			acceleration: TILE_SIZE / 60,
 			type: 'circle', physics: 'dynamic',
 			pickup(item) {
 				for (let i = 0; i < this.items.length; i++) {
@@ -53,8 +53,11 @@
 					currentLevel.objects.push(item);
 				}
 			},
-			use() {
-				if (this.items[this.held]) this.items[this.held].use();
+			interact() { //Interact with nearby object
+				if (this.pickups[0]) this.pickups[0].onInteract();
+			},
+			use() { //Use current held item
+				if (this.items[this.held]) this.items[this.held].onUse();
 			},
 			draw() {
 				let color = this.isDead ? '#203060' : this.color;

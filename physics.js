@@ -88,7 +88,7 @@ function physicsUpdate() {
 		if (!pointInView(object.x, object.y)) continue;
 		let collision = checkCollision(player, object);
 		if (collision.hit) {
-			object.onCollision(player);
+			object.onCollision(player, collision);
 		}
 	}
 	particles.update();

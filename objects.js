@@ -66,7 +66,11 @@ class Hammer extends GameObject {
 		this.size = TILE_SIZE * 2;
 	}
 
-	use() {
+	onInteract() { //Interaction when not being held by player/character
+		player.pickup(this);
+	}
+
+	onUse() {
 		if (this.timer == 0) {
 			this.timer = 1;
 		}
@@ -122,18 +126,23 @@ class Hammer extends GameObject {
 }
 
 class FireBomb extends GameObject {
-	active = false;
+	armed = false;
 	constructor(x, y) {
 		super(x, y);
 		this.size = TILE_SIZE;
 	}
 
-	use() {
+	onInteract() { //Interaction when not being held by player/character
+		player.pickup(this);
+	}
+
+	onUse() {
 		this.position.x = player.position.x + player.rotation.x * (player.size + this.size);
 		this.position.y = player.position.y + player.rotation.y * (player.size + this.size);
 		this.velocity = player.velocity.add(player.rotation.multiply(10));
 		
 		if (!objectTileCollision(this)) {
+			this.armed = true;
 			currentLevel.objects.push(this);
 			let index = player.items.indexOf(this);
 			if (index >= 0) player.items[index] = null;
@@ -141,9 +150,9 @@ class FireBomb extends GameObject {
 	}
 
 	onCollision(withObject) {
-		if (withObject == player) {
+		if (withObject == player && !this.armed) {
 			player.pickups.push(this);
-		} else if (this.active) {
+		} else if (this.armed) {
 			let tiles = tilesNearPosition(this.x, this.y);
 			for (let tile of tiles) {
 				currentLevel.spawnTile(tile, OIL);
@@ -171,18 +180,23 @@ class FireBomb extends GameObject {
 
 class Grenade extends GameObject {
 	_blastRadius = 6;
-	active = false;
+	armed = false;
 	type = 'circle';
 	constructor(x, y) {
 		super(x, y);
 	}
 
-	use() {
+	onInteract() { //Interaction when not being held by player/character
+		player.pickup(this);
+	}
+
+	onUse() {
 		this.position.x = player.position.x + player.rotation.x * (player.size + this.size);
 		this.position.y = player.position.y + player.rotation.y * (player.size + this.size);
 		this.velocity = player.velocity.add(player.rotation.multiply(10));
 		
 		if (!objectTileCollision(this)) {
+			this.armed = true;
 			currentLevel.objects.push(this);
 			let index = player.items.indexOf(this);
 			if (index >= 0) player.items[index] = null;
@@ -190,9 +204,9 @@ class Grenade extends GameObject {
 	}
 
 	onCollision(withObject) {
-		if (withObject == player) {
+		if (withObject == player && !this.armed) {
 			player.pickups.push(this);
-		} else if (this.active) {
+		} else if (this.armed) {
 			let tile = tileAtCoords(this.x, this.y);
 			for (let y = -this._blastRadius + 1; y < this._blastRadius; y++) {
 				for (let x = -this._blastRadius + 1; x < this._blastRadius; x++) {
@@ -221,18 +235,23 @@ class Grenade extends GameObject {
 
 class Balloon extends GameObject {
 	_blastRadius = 4;
-	active = false;
+	armed = false;
 	type = 'circle';
 	constructor(x, y) {
 		super(x, y);
 	}
 
-	use() {
+	onInteract() { //Interaction when not being held by player/character
+		player.pickup(this);
+	}
+
+	onUse() {
 		this.position.x = player.position.x + player.rotation.x * (player.size + this.size);
 		this.position.y = player.position.y + player.rotation.y * (player.size + this.size);
 		this.velocity = player.velocity.add(player.rotation.multiply(10));
 		
 		if (!objectTileCollision(this)) {
+			this.armed = true;
 			currentLevel.objects.push(this);
 			let index = player.items.indexOf(this);
 			if (index >= 0) player.items[index] = null;
@@ -240,9 +259,9 @@ class Balloon extends GameObject {
 	}
 
 	onCollision(withObject) {
-		if (withObject == player) {
+		if (withObject == player && !this.armed) {
 			player.pickups.push(this);
-		} else if (this.active) {
+		} else if (this.armed) {
 			let tiles = tilesNearPosition(this.x, this.y);
 			for (let tile of tiles) {
 				currentLevel.spawnTile(tile, WATER);
@@ -261,4 +280,79 @@ class Balloon extends GameObject {
 	}
 
 	get radius() { return this.size/2; }
+}
+
+class Door extends GameObject {
+	physics = 'static';
+	locked = false;
+	open = false;
+	constructor(x, y) {
+		super(x, y);
+	}
+
+	onInteract() {
+		if(!this.locked) {
+			this.open = !this.open;
+			console.log(this.open);
+		}
+	}
+
+	onCollision(whichObject, collision) {
+		if (whichObject == player) {
+			player.pickups.push(this);
+			//TO-DO: Separate collision from interaction range
+			if (!this.open) {
+				let correction = new Vector2(whichObject.x - this.x, whichObject.y - this.y);
+				if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
+				else correction.x = 0;
+			
+				correction = correction.normalize();
+				correction.x *= collision.overlap.x;
+				correction.y *= collision.overlap.y;
+				whichObject.position = whichObject.position.add(correction);
+				whichObject.velocity = whichObject.velocity.add(correction);
+				whichObject.velocity = whichObject.velocity.multiply(FRICTION);
+			}
+		}
+	}
+
+	draw(x, y) {
+		ctx.fillStyle = substColors[WOOD];
+		ctx.strokeStyle = substColors[METAL];
+		ctx.beginPath();
+		ctx.rect(x - this.size/2, y - this.size/2, this.size, this.size);
+		if (!this.open) ctx.fill();
+		ctx.stroke();
+	}
+
+	drawLabel(x, y) {
+		let locked = (!this.open && this.locked) ? ' (Locked)' : '';
+		ctx.fillStyle = 'white';
+		ctx.font = '16px Arial';
+		ctx.fillText(this.constructor.name + locked, x, y - TILE_SIZE * 2);
+	}
+}
+
+class Key extends GameObject {
+	constructor(x, y) {
+		super(x, y);
+	}
+
+	onCollision(whichObject) {
+		if (whichObject == player) {
+			player.pickups.push(this);
+		}
+	}
+
+	onInteract() {
+		player.pickup(this);
+	}
+
+	onUse() {
+		if (player.pickups[0].constructor.name == Door.constructor.name && player.pickups[0].locked) {
+			player.pickups[0].locked = false;
+			let index = player.items.indexOf(this);
+			if (index >= 0) player.items[index] = null;
+		}
+	}
 }

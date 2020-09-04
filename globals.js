@@ -1,6 +1,6 @@
 const MIN_ROOM_SIZE = 8;
 const ROOM_SIZE = 16;
-const TILE_SIZE = 32;
+const TILE_SIZE = 16;
 const PARTICLE_SIZE = TILE_SIZE/4;
 
 const AIR_RESISTANCE = 0.96;
