@@ -283,6 +283,7 @@ class Balloon extends GameObject {
 }
 
 class Door extends GameObject {
+	size = TILE_SIZE * 3;
 	physics = 'static';
 	locked = false;
 	open = false;
@@ -294,7 +295,12 @@ class Door extends GameObject {
 		let key = player.items[player.held];
 		if (key && key.constructor.name == Key.name) key.onUse();
 		if (!this.locked) {
-			this.open = !this.open;
+			let hit = checkCollision(player, getTileCollider(tileAtCoords(this.x, this.y))).hit;
+			if (this.open) {
+				if (!hit) this.open = false;
+			} else {
+				this.open = true;
+			}
 		}
 	}
 
@@ -302,17 +308,20 @@ class Door extends GameObject {
 		if (whichObject == player) {
 			player.interactables.push(this);
 			//TO-DO: Separate collision from interaction range
-			if (!this.open) {
-				let correction = new Vector2(whichObject.x - this.x, whichObject.y - this.y);
-				if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
-				else correction.x = 0;
-			
-				correction = correction.normalize();
-				correction.x *= collision.overlap.x;
-				correction.y *= collision.overlap.y;
-				whichObject.position = whichObject.position.add(correction);
-				whichObject.velocity = whichObject.velocity.add(correction);
-				whichObject.velocity = whichObject.velocity.multiply(FRICTION);
+			let overlap = collision.overlap;
+			if (!this.open && (Math.abs(overlap.x) > this.size/3 || Math.abs(collision.overlap.y) > this.size/3)) {
+				if (overlap = checkCollision(whichObject, getTileCollider(tileAtCoords(this.x, this.y))).overlap) {
+					let correction = new Vector2(whichObject.x - this.x, whichObject.y - this.y);
+					if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
+					else correction.x = 0;
+				
+					correction = correction.normalize();
+					correction.x *= overlap.x;
+					correction.y *= overlap.y;
+					whichObject.position = whichObject.position.add(correction);
+					whichObject.velocity = whichObject.velocity.add(correction);
+					whichObject.velocity = whichObject.velocity.multiply(FRICTION);
+				}
 			}
 		}
 	}
@@ -321,7 +330,7 @@ class Door extends GameObject {
 		ctx.fillStyle = substColors[WOOD];
 		ctx.strokeStyle = substColors[METAL];
 		ctx.beginPath();
-		ctx.rect(x - this.size/2, y - this.size/2, this.size, this.size);
+		ctx.rect(x - this.size/6, y - this.size/6, this.size/3, this.size/3);
 		if (!this.open) ctx.fill();
 		ctx.stroke();
 	}
@@ -360,7 +369,7 @@ class Key extends GameObject {
 
 	draw(x, y) {
 		ctx.fillStyle = substColors[GOLD];
-		ctx.fillRect(x - this.size/4, y-this.size/4, this.size/2, this.size);
-		ctx.fillRect(x - this.size/2, y+this.size/4, this.size, this.size/2);
+		ctx.fillRect(x - this.size/6, y-this.size/4, this.size/3, this.size);
+		ctx.fillRect(x - this.size/3, y+this.size/4, this.size/1.5, this.size/2);
 	}
 }

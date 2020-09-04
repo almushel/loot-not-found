@@ -269,8 +269,8 @@ function generateTileGrid(rooms, width, height) {
 							let dx = tileIndex % level.width, dy = (tileIndex - x) / level.width;
 							let door = new Door(Math.floor(dx) * TILE_SIZE, Math.floor(dy) * TILE_SIZE);
 							if (wallType == METAL || Math.random() > 0.6) door.locked = true;
-							door.x += door.size/2;
-							door.y += door.size/2;
+							door.x += TILE_SIZE/2;
+							door.y += TILE_SIZE/2;
 							level.objects.push(door);
 						}
 						continue;
@@ -311,23 +311,6 @@ function generateTileGrid(rooms, width, height) {
 
 	//Random start point
 	//Random exit point
-
-	while(lootLeft > 0) {
-		let x = y = TILE_SIZE;
-		if (Math.random() > 0.6) {
-			x += Math.random() * ((ROOM_SIZE * TILE_SIZE) - TILE_SIZE), y += Math.random() * (level.height * TILE_SIZE - TILE_SIZE);
-		} else {
-			x += Math.random() * (level.width * TILE_SIZE - TILE_SIZE) , y += Math.random() * (ROOM_SIZE * TILE_SIZE - TILE_SIZE);
-		}
-		
-		x -= x % TILE_SIZE;
-		y -= y % TILE_SIZE;
-		
-		if (Math.random() > 0.5) x = ((1 + level.width - 2) * TILE_SIZE) - x;
-		if (Math.random() > 0.5) y = ((1 + level.height - 2) * TILE_SIZE) - y;
-		level.objects.push(new LootPiece(x, y));
-		lootLeft--;
-	}
 
 	return sealLevel(level);
 }
