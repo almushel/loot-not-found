@@ -83,7 +83,7 @@ function physicsUpdate() {
 	if (player.items[player.held]) player.items[player.held].updateHeld();
 
 	objectTileCollision(player);
-	player.pickups.length = 0;
+	player.interactables.length = 0;
 	for (let object of currentLevel.objects) {
 		if (!pointInView(object.x, object.y)) continue;
 		let collision = checkCollision(player, object);

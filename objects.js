@@ -15,6 +15,7 @@ class GameObject {
 		ctx.fillStyle = 'white';
 		ctx.font = '16px Arial';
 		ctx.fillText(this.constructor.name, x, y - TILE_SIZE * 2);
+
 	}
 	drawHeld() {}
 	updateHeld() {}
@@ -29,8 +30,7 @@ class GameObject {
 }
 
 class LootPiece extends GameObject{
-	active = true;
-	color = '#ffca00';
+	active = true
 	value = 4;
 
 	constructor(x, y) {
@@ -49,7 +49,7 @@ class LootPiece extends GameObject{
 		if (this.active && pointInView(x, y)) {
 			let tile = tileAtCoords(x, y);
 			let tileType = currentLevel.getType(1, tile);
-			ctx.fillStyle = tileType > GRND ? averageHexColors([substColors[tileType], this.color]) : this.color;
+			ctx.fillStyle = tileType > GRND ? averageHexColors([substColors[tileType], substColors[GOLD]]) : substColors[GOLD];
 			ctx.fillRect(x - this.size / 2, y - this.size / 2, this.size, this.size);
 		}
 	}
@@ -78,7 +78,7 @@ class Hammer extends GameObject {
 
 	onCollision(withObject) {
 		if (withObject == player) {
-			player.pickups.push(this);
+			player.interactables.push(this);
 		}
 	}
 
@@ -151,7 +151,7 @@ class FireBomb extends GameObject {
 
 	onCollision(withObject) {
 		if (withObject == player && !this.armed) {
-			player.pickups.push(this);
+			player.interactables.push(this);
 		} else if (this.armed) {
 			let tiles = tilesNearPosition(this.x, this.y);
 			for (let tile of tiles) {
@@ -205,7 +205,7 @@ class Grenade extends GameObject {
 
 	onCollision(withObject) {
 		if (withObject == player && !this.armed) {
-			player.pickups.push(this);
+			player.interactables.push(this);
 		} else if (this.armed) {
 			let tile = tileAtCoords(this.x, this.y);
 			for (let y = -this._blastRadius + 1; y < this._blastRadius; y++) {
@@ -260,7 +260,7 @@ class Balloon extends GameObject {
 
 	onCollision(withObject) {
 		if (withObject == player && !this.armed) {
-			player.pickups.push(this);
+			player.interactables.push(this);
 		} else if (this.armed) {
 			let tiles = tilesNearPosition(this.x, this.y);
 			for (let tile of tiles) {
@@ -299,7 +299,7 @@ class Door extends GameObject {
 
 	onCollision(whichObject, collision) {
 		if (whichObject == player) {
-			player.pickups.push(this);
+			player.interactables.push(this);
 			//TO-DO: Separate collision from interaction range
 			if (!this.open) {
 				let correction = new Vector2(whichObject.x - this.x, whichObject.y - this.y);
@@ -340,7 +340,7 @@ class Key extends GameObject {
 
 	onCollision(whichObject) {
 		if (whichObject == player) {
-			player.pickups.push(this);
+			player.interactables.push(this);
 		}
 	}
 
@@ -349,10 +349,17 @@ class Key extends GameObject {
 	}
 
 	onUse() {
-		if (player.pickups[0].constructor.name == Door.constructor.name && player.pickups[0].locked) {
-			player.pickups[0].locked = false;
+		let interactable = player.interactables[0];
+		if (interactable && interactable.constructor.name == Door.name && interactable.locked) {
+			interactable.locked = false;
 			let index = player.items.indexOf(this);
 			if (index >= 0) player.items[index] = null;
 		}
+	}
+
+	draw(x, y) {
+		ctx.fillStyle = substColors[GOLD];
+		ctx.fillRect(x - this.size/4, y-this.size/4, this.size/2, this.size);
+		ctx.fillRect(x - this.size/2, y+this.size/4, this.size, this.size/2);
 	}
 }
