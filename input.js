@@ -5,6 +5,13 @@ const controls = {
 	action: 0, //Use held item
 }
 
+const controlsLastFrame = {
+	u: 0, d: 0, l: 0, r: 0, //directions
+	items: 0, //toggle held items menu
+	interact: 0,//Interact with world object
+	action: 0, //Use held item
+}
+
 this.addEventListener('keydown', e => setControl(e.which, 1));
 this.addEventListener('keyup', e => setControl(e.which, 0));
 
@@ -33,9 +40,17 @@ function control() {
 		if (controls.r) av.x += 1;
 		if (controls.u) av.y -= 1;
 		if (controls.d) av.y += 1;
-		if (controls.action) player.use();
-		if (controls.interact) 
-			if (player.pickups[0]) player.pickup(player.pickups[0]);
+		if (controls.action && !controlsLastFrame.action) player.use();
+		if (controls.interact && ! controlsLastFrame.interact) {
+			if (player.pickups[0]) player.interact();
+		} 
+			
+	}
+
+	for (let key in controls) {
+		if (controls.hasOwnProperty(key)) {
+			controlsLastFrame[key] = controls[key];
+		}
 	}
 
 	return av.normalize();
