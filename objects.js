@@ -291,9 +291,10 @@ class Door extends GameObject {
 	}
 
 	onInteract() {
-		if(!this.locked) {
+		let key = player.items[player.held];
+		if (key && key.constructor.name == Key.name) key.onUse();
+		if (!this.locked) {
 			this.open = !this.open;
-			console.log(this.open);
 		}
 	}
 

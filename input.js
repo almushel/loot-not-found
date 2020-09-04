@@ -1,10 +1,9 @@
 const controls = {
 	u: 0, d: 0, l: 0, r: 0, //directions
 	items: 0, //toggle held items menu
-	interact: 0,//Interact with world object
-	action: 0, //Use held item
+	interact: 0, //Interact with world item or Use held item (prioritized in that order)
 }
-const controlsLastFrame = {u: 0, d: 0, l: 0, r: 0, items: 0,interact: 0, action: 0,}
+const controlsLastFrame = {u: 0, d: 0, l: 0, r: 0, items: 0, interact: 0,}
 
 this.addEventListener('keydown', e => setControl(e.which, 1));
 this.addEventListener('keyup', e => setControl(e.which, 0));
@@ -16,7 +15,7 @@ function setControl(key, to) {
 	if (key == 87 || key == 38) { controls.u = to } //w or up
 	if (key == 83 || key == 40) { controls.d = to } //s or down
 	if (key == 69) { controls.items = to};
-	if (key == 32) { controls.action = to } //space
+	if (key == 32) { controls.interact = to } //space
 	if (key == 17) { controls.interact = to } //control
 }
 
@@ -34,11 +33,10 @@ function control() {
 		if (controls.r) av.x += 1;
 		if (controls.u) av.y -= 1;
 		if (controls.d) av.y += 1;
-		if (controls.action && !controlsLastFrame.action) player.use();
 		if (controls.interact && !controlsLastFrame.interact) {
 			if (player.interactables[0]) player.interact();
-		} 
-			
+			else player.use();
+		} 	
 	}
 
 	for (let key in controls) {
