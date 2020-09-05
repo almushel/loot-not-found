@@ -65,39 +65,63 @@ class SubstanceLayer {
 
 class LevelExit extends GameObject {
 	size = (TILE_SIZE * ROOM_SIZE) / 4;
-	type = 'circle';
+	type = 'rect';
 	physics = 'static';
 
 	constructor(x, y){
 		super(x, y);
 	}
 
-	onCollision(withObject) {
-		if (player.loot >= 404 && withObject == player) {
-			newGame();
+	onCollision(whichObject) {
+		if (whichObject == player) {
+			whichObject.interactables.push(this);
 		}
+	}
+	
+	onInteract() {
+		if (!this.locked) newGame();
 	}
 
 	draw() {
 		if (objectInView(this.x, this.y, this.size, this.size)) {
+			ctx.fillStyle = substColors[WOOD];
+			ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size)
+			
+			ctx.fillStyle = averageHexColors([substColors[METAL], substColors[GRND]]);
+			ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size/4);
+			
 			ctx.fillStyle = 'black';
-			ctx.beginPath();
-			ctx.arc(this.x, this.y, this.size, 0, Math.PI*2, false);
-			ctx.fill();
+			ctx.fillRect(this.x - this.size/4, this.y - this.size/4, this.size/2, this.size/2);
+			
+			ctx.fillStyle = averageHexColors([substColors[WOOD], substColors[GRND]]);
+			ctx.fillRect(this.x - this.size/4, this.y + this.size/4, this.size/2, this.size/4);
+			
+			ctx.strokeStyle = averageHexColors([substColors[METAL], substColors[GRND]]);
+			ctx.lineWidth = 2;
+			ctx.strokeRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
 		}
 
-		if (player.loot >= 404) {
+		if (!this.locked) {
+			let x = this.x, y = this.y - this.size/2 + this.size / 7;
+			ctx.textBaseline = 'middle';
+			ctx.font = this.size/4 +'px Arial';
 			ctx.fillStyle = '#ffca00';
-			let mt = ctx.measureText('EXIT');
-			let width = mt.width;
-			let height = mt.actualBoundingBoxAscent + mt.actualBoundingBoxDescent;
-			let x = clamp(this.x, panX + width/2, panX + w - width/2);
-			let y = clamp(this.y, panY + height/2, panY + h - height/2);
+			let width = ctx.measureText('EXIT').width;
+			x = clamp(x, panX + width/2, panX + w - width/2);
+			y = clamp(y, panY + this.size/8, panY + h - this.size/8);
 				
 			ctx.fillText('EXIT', x, y);
 		}
 	}
 
+	drawLabel(x, y) {
+		let locked = this.locked ? ' (Locked)' : '';
+		ctx.fillStyle = 'white';
+		ctx.font = '16px Arial';
+		ctx.fillText('Exit' + locked, x, y - this.size/2);
+	}
+
+	get locked() { return player.loot < 404; }
 	get radius() { return this.size; }
 }
 
@@ -203,16 +227,30 @@ class GameLevel {
 
 	drawStart() {
 		const SIZE = (TILE_SIZE * ROOM_SIZE) / 4;
-		ctx.textAlign = 'center';
-		ctx.textBaseline = 'middle';
-		ctx.fillStyle = 'white';
+
 		if (objectInView(this.start.x, this.start.y, SIZE, SIZE)) {
-			ctx.fillStyle = 'black';
-			ctx.beginPath();
-			ctx.arc(this.start.x, this.start.y, SIZE, 0, Math.PI*2, false);
-			ctx.fill();
+			ctx.fillStyle = substColors[WOOD];
+			ctx.fillRect(this.start.x - SIZE/2, this.start.y - SIZE/2, SIZE, SIZE)
+			
+			ctx.fillStyle = averageHexColors([substColors[METAL], substColors[GRND]]);
+			ctx.fillRect(this.start.x - SIZE/2, this.start.y - SIZE/2, SIZE, SIZE/4);
+			
+			ctx.fillStyle = averageHexColors([substColors[GLASS], substColors[CNCRT]]);
+			ctx.fillRect(this.start.x - SIZE/4, this.start.y - SIZE/4, SIZE/2, SIZE/2);
+			
+			ctx.fillStyle = averageHexColors([substColors[WOOD], substColors[CNCRT]]);
+			ctx.fillRect(this.start.x - SIZE/4, this.start.y + SIZE/4, SIZE/2, SIZE/4);
+			
+			ctx.strokeStyle = averageHexColors([substColors[METAL], substColors[GRND]]);
+			ctx.lineWidth = 2;
+			ctx.strokeRect(this.start.x - SIZE/2, this.start.y - SIZE/2, SIZE, SIZE);
+		
+			ctx.textBaseline = 'middle';
+			ctx.font = SIZE/4 +'px Arial';
 			ctx.fillStyle = 'white';
-			ctx.fillText('START', this.start.x, this.start.y);
+
+				
+			ctx.fillText('START', this.start.x, this.start.y - SIZE/2 + SIZE / 7);
 		}
 	}
 
@@ -268,7 +306,8 @@ function generateTileGrid(rooms, width, height) {
 						if (rx == doorOpening[0] && ry == doorOpening[1]) {
 							let dx = tileIndex % level.width, dy = (tileIndex - x) / level.width;
 							let door = new Door(Math.floor(dx) * TILE_SIZE, Math.floor(dy) * TILE_SIZE);
-							if (wallType == METAL || Math.random() > 0.6) door.locked = true;
+							if (wallType == METAL || (wallType == CNCRT && Math.random() > 0.6))
+								door.locked = true;
 							door.x += TILE_SIZE/2;
 							door.y += TILE_SIZE/2;
 							level.objects.push(door);
