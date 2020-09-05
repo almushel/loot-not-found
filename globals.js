@@ -4,7 +4,7 @@ const TILE_SIZE = 16;
 const PARTICLE_SIZE = TILE_SIZE/4;
 
 const AIR_RESISTANCE = 0.96;
-const FRICTION = 0.94;
+const FRICTION = 0.95;
 
 const NOEFF = -1; //No effect
 const GRND = 0;
@@ -96,3 +96,12 @@ effectMatrix[STEAM][FIRE] = STEAM;
 
 let canvas, ctx, w, h, panX, panY;
 let particles;
+
+/*
+	Game States:
+		0: Main Mene
+		1: Gameplay
+		2: Game Over
+		3: Victory
+*/
+let gameState = 0;

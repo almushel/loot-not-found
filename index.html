@@ -27,16 +27,6 @@
 			window.addEventListener('resize', resizeCanvas);
 			window.addEventListener('orientationchange', resizeCanvas);
 			resizeCanvas()
-
-			newGame();
-
-			let centerTile = tileAtCoords(currentLevel.width / 2 * TILE_SIZE, currentLevel.height / 2 * TILE_SIZE);
-			currentLevel.spawnTile(centerTile + 11, WATER);
-			currentLevel.spawnTile(centerTile - 11, OIL);
-
-			currentLevel.objects.push(new Key(player.x - TILE_SIZE * 4, player.y));
-			currentLevel.objects.push(new FireBomb(player.x + TILE_SIZE * 4, player.y));
-
 			setInterval(update, 1000 / 60);
 		}
 
@@ -45,12 +35,40 @@
 			currentLevel = generateLevel(9, 9);
 			player.position.x = currentLevel.start.x;
 			player.position.y = currentLevel.start.y;
+
+			const DEBUG = true;
+			if (DEBUG) {
+				let centerTile = tileAtCoords(currentLevel.width / 2 * TILE_SIZE, currentLevel.height / 2 * TILE_SIZE);
+				currentLevel.spawnTile(centerTile + 11, WATER);
+				currentLevel.spawnTile(centerTile - 11, OIL);
+
+				currentLevel.objects.push(new Key(player.x - TILE_SIZE * 4, player.y));
+				currentLevel.objects.push(new FireBomb(player.x + TILE_SIZE * 4, player.y));
+
+			}
+			gameState = 1
 		}
 
 		function update() {
-			physicsUpdate();
-			updateCamera();
-			draw();
+			switch (gameState) {
+				case 0: {
+					if (controls.interact) {
+						newGame();
+					}
+					drawMainMenu();
+				} break;
+				case 1: {
+					physicsUpdate();
+					updateCamera();
+					draw();
+				} break;
+				case 2:  {
+				
+				} break;
+				case 3:  {
+				
+				} break;
+			}
 		}
 
 		function draw() {

@@ -1,5 +1,28 @@
 const HP_COLOR = '#ff6060'
 
+function drawMainMenu() {
+    //ctx.fillStyle = 
+    let tHeight = canvas.height/4 * (canvas.width/canvas.height/2);
+    tHeight = clamp(tHeight, 0, canvas.width / 1.5);
+    ctx.textAlign = 'center';
+    ctx.font = tHeight + 'px Arial';
+    ctx.fillStyle = substColors[GOLD];
+    ctx.fillText('Loot Not Found', canvas.width/2, canvas.height/2, canvas.width);
+    ctx.font = tHeight/2 + 'px Arial';
+    let yOffset = (tHeight * 1.25)/2;
+    let x = canvas.width/2, y = canvas.height/2 + yOffset;
+    let xOffset = -ctx.measureText('Press [Interact] to start').width/3;
+    
+    ctx.fillStyle = substColors[METAL];
+    ctx.fillText('Press ', x + xOffset, y, canvas.width);
+    xOffset += ctx.measureText('Press ').width/2 + ctx.measureText('[Interact] ').width/2;
+    ctx.fillStyle = substColors[FIRE];
+    ctx.fillText('[Interact] ', x + xOffset, y, canvas.width);
+    xOffset += ctx.measureText('[Interact] ').width/2 + ctx.measureText('to start').width/2;
+    ctx.fillStyle = substColors[METAL];
+    ctx.fillText('to start', x + xOffset, y, canvas.width);
+}
+
 function drawUI() {
     if (controls.items) drawItemMenu();
     drawHUD();

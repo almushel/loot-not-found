@@ -16,11 +16,9 @@ function setControl(key, to) {
 	if (key == 83 || key == 40) { controls.d = to } //s or down
 	if (key == 69) { controls.items = to};
 	if (key == 32) { controls.interact = to } //space
-	if (key == 17) { controls.interact = to } //control
 }
 
 function control() {
-	if (player.isDead) return null;
 	let av = new Vector2(0, 0);
 	if (controls.items) {
 		if (controls.u) player.held = 0;
@@ -45,5 +43,6 @@ function control() {
 		}
 	}
 
+	if (player.isDead) return null;
 	return av.normalize();
 }

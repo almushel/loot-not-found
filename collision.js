@@ -19,7 +19,7 @@ function objectTileCollision(object) {
 					correction.x *= collision.overlap.x;
 					correction.y *= collision.overlap.y;
 					object.position = object.position.add(correction);
-					object.velocity = object.velocity.add(correction);
+					//object.velocity = object.velocity.add(correction);
 					object.velocity = object.velocity.multiply(FRICTION);
 				} else {
 					if (airType == FIRE) object.hp -= 0.125;
