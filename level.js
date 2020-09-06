@@ -51,11 +51,10 @@ class SubstanceLayer {
 		for (let e = 0; e < this.length; e++) {
 			let type = this.getType(e);
 			if (type <= 0) continue;
-			ctx.fillStyle = substColors[type];
 			let x = e % currentLevel.width, y = (e - x) / currentLevel.width * TILE_SIZE;
 			x *= TILE_SIZE;
 			if (pointInView(x, y)) {
-				ctx.fillRect(x, y, TILE_SIZE, TILE_SIZE);
+				colorRect(x, y, TILE_SIZE, TILE_SIZE, substColors[type]);
 			}
 		}
 	}
@@ -84,17 +83,10 @@ class LevelExit extends GameObject {
 
 	draw() {
 		if (objectInView(this.x, this.y, this.size, this.size)) {
-			ctx.fillStyle = substColors[WOOD];
-			ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size)
-			
-			ctx.fillStyle = averageHexColors([substColors[METAL], substColors[GRND]]);
-			ctx.fillRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size/4);
-			
-			ctx.fillStyle = 'black';
-			ctx.fillRect(this.x - this.size/4, this.y - this.size/4, this.size/2, this.size/2);
-			
-			ctx.fillStyle = averageHexColors([substColors[WOOD], substColors[GRND]]);
-			ctx.fillRect(this.x - this.size/4, this.y + this.size/4, this.size/2, this.size/4);
+			colorRect(this.x, this.y, this.size, this.size, substColors[WOOD], true);
+			colorRect(this.x, this.y - this.size * (3/8), this.size, this.size/4, averageHexColors([substColors[METAL], substColors[GRND]]), true);
+			colorRect(this.x, this.y, this.size/2, this.size/2, 'black', true);
+			colorRect(this.x, this.y + this.size * (3/8), this.size/2, this.size/4, averageHexColors([substColors[WOOD], substColors[GRND]]), true);
 			
 			ctx.strokeStyle = averageHexColors([substColors[METAL], substColors[GRND]]);
 			ctx.lineWidth = 2;
@@ -103,22 +95,18 @@ class LevelExit extends GameObject {
 
 		if (!this.locked) {
 			let x = this.x, y = this.y - this.size/2 + this.size / 7;
-			ctx.textBaseline = 'middle';
 			ctx.font = this.size/4 +'px Arial';
-			ctx.fillStyle = '#ffca00';
 			let width = ctx.measureText('EXIT').width;
 			x = clamp(x, panX + width/2, panX + w - width/2);
 			y = clamp(y, panY + this.size/8, panY + h - this.size/8);
 				
-			ctx.fillText('EXIT', x, y);
+			colorText('EXIT', x, y, '#ffca00', null, null, 'middle');
 		}
 	}
 
 	drawLabel(x, y) {
 		let locked = this.locked ? ' (Locked)' : '';
-		ctx.fillStyle = 'white';
-		ctx.font = '16px Arial';
-		ctx.fillText('Exit' + locked, x, y - this.size/2 - 16);
+		colorText('Exit' + locked, x, y - this.size/2 - 16, 'white', '16px Arial');
 	}
 
 	get locked() { return player.loot < 404; }
@@ -212,8 +200,7 @@ class GameLevel {
 				} else if (ground > GRND) color = substColors[ground];
 	
 				if (color) {
-					ctx.fillStyle = color;
-					ctx.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+					colorRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE, color);
 				}
 			}
 		}
@@ -229,28 +216,16 @@ class GameLevel {
 		const SIZE = (TILE_SIZE * ROOM_SIZE) / 4;
 
 		if (objectInView(this.start.x, this.start.y, SIZE, SIZE)) {
-			ctx.fillStyle = substColors[WOOD];
-			ctx.fillRect(this.start.x - SIZE/2, this.start.y - SIZE/2, SIZE, SIZE)
-			
-			ctx.fillStyle = averageHexColors([substColors[METAL], substColors[GRND]]);
-			ctx.fillRect(this.start.x - SIZE/2, this.start.y - SIZE/2, SIZE, SIZE/4);
-			
-			ctx.fillStyle = averageHexColors([substColors[GLASS], substColors[CNCRT]]);
-			ctx.fillRect(this.start.x - SIZE/4, this.start.y - SIZE/4, SIZE/2, SIZE/2);
-			
-			ctx.fillStyle = averageHexColors([substColors[WOOD], substColors[CNCRT]]);
-			ctx.fillRect(this.start.x - SIZE/4, this.start.y + SIZE/4, SIZE/2, SIZE/4);
+			colorRect(this.start.x, this.start.y, SIZE, SIZE, substColors[WOOD], true)
+			colorRect(this.start.x, this.start.y + SIZE * (3/8), SIZE, SIZE/4, averageHexColors([substColors[METAL], substColors[GRND]]), true);
+			colorRect(this.start.x, this.start.y, SIZE/2, SIZE/2, averageHexColors([substColors[GLASS], substColors[CNCRT]]), true);
+			colorRect(this.start.x, this.start.y + SIZE * (3/8), SIZE/2, SIZE/4, averageHexColors([substColors[WOOD], substColors[CNCRT]]), true);
 			
 			ctx.strokeStyle = averageHexColors([substColors[METAL], substColors[GRND]]);
 			ctx.lineWidth = 2;
 			ctx.strokeRect(this.start.x - SIZE/2, this.start.y - SIZE/2, SIZE, SIZE);
 		
-			ctx.textBaseline = 'middle';
-			ctx.font = SIZE/4 +'px Arial';
-			ctx.fillStyle = 'white';
-
-				
-			ctx.fillText('START', this.start.x, this.start.y - SIZE/2 + SIZE / 7);
+			colorText('START', this.start.x, this.start.y - SIZE/2 + SIZE / 7, 'white', SIZE/4 +'px Arial', 'center', 'middle');
 		}
 	}
 
@@ -406,4 +381,16 @@ function tilesNearIndex(index) {
 
 function tileAtCoords(x, y) {
 	return Math.floor(Math.floor(y / TILE_SIZE) * currentLevel.width + Math.floor(x / TILE_SIZE));
+}
+
+function nearTileColors(layer, x, y) {
+	let tiles = tilesNearPosition(x, y);
+	let colors = [];
+	for(tile of tiles) {
+		let type = currentLevel.getType(layer, tile);
+		if (type > GRND) {
+			colors.push(substColors[type]);
+		}
+	}
+	return colors;
 }

@@ -48,9 +48,7 @@ class ParticleSystem {
 				let tile = tileAtCoords(Math.round(this.data[p + 1]), Math.round(this.data[p + 2]));
 				let tileType = currentLevel.getType(1, tile);
 				let color = tileType > GRND ? averageHexColors([ substColors[tileType], substColors[this.data[p]]]) : substColors[this.data[p]];
-
-				ctx.fillStyle = color;
-				ctx.fillRect(this.data[p + 1], this.data[p + 2], this.data[p + 5], this.data[p + 5]);
+				colorRect(this.data[p + 1], this.data[p + 2], this.data[p + 5], this.data[p + 5], color, true);
 			}
 		}
 	}

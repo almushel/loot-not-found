@@ -12,9 +12,7 @@ class GameObject {
 
 	draw(x, y) {}
 	drawLabel(x, y) {
-		ctx.fillStyle = 'white';
-		ctx.font = '16px Arial';
-		ctx.fillText(this.constructor.name, x, y - TILE_SIZE * 2);
+		colorText(this.constructor.name, x, y - TILE_SIZE * 2, 'white', '16px Arial');
 
 	}
 	drawHeld() {}
@@ -49,8 +47,8 @@ class LootPiece extends GameObject{
 		if (this.active && pointInView(x, y)) {
 			let tile = tileAtCoords(x, y);
 			let tileType = currentLevel.getType(1, tile);
-			ctx.fillStyle = tileType > GRND ? averageHexColors([substColors[tileType], substColors[GOLD]]) : substColors[GOLD];
-			ctx.fillRect(x - this.size / 2, y - this.size / 2, this.size, this.size);
+			let color = tileType > GRND ? averageHexColors([substColors[tileType], substColors[GOLD]]) : substColors[GOLD];
+			colorRect(x, y, this.size, this.size, color, true);
 		}
 	}
 }
@@ -107,10 +105,10 @@ class Hammer extends GameObject {
 		let tile = tileAtCoords(x, y);
 		let tileType = currentLevel.getType(1, tile);
 		ctx.translate(x, y);
-		ctx.fillStyle = tileType > GRND ? averageHexColors([substColors[tileType], substColors[WOOD]]) : substColors[WOOD];
-		ctx.fillRect(-this.size / 12, -this.size / 2, this.size / 6, this.size);
-		ctx.fillStyle = tileType > GRND ? averageHexColors([substColors[tileType], substColors[METAL]]) : substColors[METAL];
-		ctx.fillRect(-this.size / 3, -this.size / 2, this.size / 1.5, this.size / 4);
+		let color = tileType > GRND ? averageHexColors([substColors[tileType], substColors[WOOD]]) : substColors[WOOD];
+		colorRect(0, 0, this.size / 6, this.size, color, true);
+		color = tileType > GRND ? averageHexColors([substColors[tileType], substColors[METAL]]) : substColors[METAL];
+		colorRect(-this.size / 3, -this.size / 2, this.size / 1.5, this.size / 4, color);
 		ctx.translate(-x, -y)
 	}
  
@@ -171,10 +169,8 @@ class FireBomb extends GameObject {
 
 	draw(x, y) {
 		const capHeight = this.size/3;
-		ctx.fillStyle = 'red';
-		ctx.fillRect(x - this.size/4, y - this.size/2, this.size/2, capHeight);
-		ctx.fillStyle = 'olive';
-		ctx.fillRect(x - this.size/4, y - this.size/2 + capHeight, this.size/2, this.size - capHeight);
+		colorRect(x - this.size/4, y - this.size/2, this.size/2, capHeight, 'red');
+		colorRect(x - this.size/4, y - this.size/2 + capHeight, this.size/2, this.size - capHeight, 'olive');
 	}
 
 	drawHeld() {
@@ -344,9 +340,7 @@ class Door extends GameObject {
 
 	drawLabel(x, y) {
 		let locked = (!this.open && this.locked) ? ' (Locked)' : '';
-		ctx.fillStyle = 'white';
-		ctx.font = '16px Arial';
-		ctx.fillText(this.constructor.name + locked, x, y - TILE_SIZE * 2);
+		colorText(this.constructor.name + locked, x, y - TILE_SIZE * 2, 'white', '16px Arial');
 	}
 }
 
@@ -375,8 +369,7 @@ class Key extends GameObject {
 	}
 
 	draw(x, y) {
-		ctx.fillStyle = substColors[GOLD];
-		ctx.fillRect(x - this.size/6, y-this.size/4, this.size/3, this.size);
-		ctx.fillRect(x - this.size/3, y+this.size/4, this.size/1.5, this.size/2);
+		colorRect(x - this.size/6, y-this.size/4, this.size/3, this.size, substColors[GOLD]);
+		colorRect(x - this.size/3, y+this.size/4, this.size/1.5, this.size/2);
 	}
 }
