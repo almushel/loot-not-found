@@ -91,16 +91,9 @@ class LevelExit extends GameObject {
 			ctx.strokeStyle = averageHexColors([substColors[METAL], substColors[GRND]]);
 			ctx.lineWidth = 2;
 			ctx.strokeRect(this.x - this.size/2, this.y - this.size/2, this.size, this.size);
-		}
 
-		if (!this.locked) {
 			let x = this.x, y = this.y - this.size/2 + this.size / 7;
-			ctx.font = this.size/4 +'px Arial';
-			let width = ctx.measureText('EXIT').width;
-			x = clamp(x, panX + width/2, panX + w - width/2);
-			y = clamp(y, panY + this.size/8, panY + h - this.size/8);
-				
-			colorText('EXIT', x, y, '#ffca00', null, null, 'middle');
+			colorText('EXIT', x, y, '#ffca00', this.size/3 +'px Arial', 'center', 'middle');
 		}
 	}
 
@@ -205,7 +198,6 @@ class GameLevel {
 			}
 		}
 		this.drawStart();
-		//this.exit.draw();
 	}
 
 	drawLayer(layer) {
@@ -217,7 +209,7 @@ class GameLevel {
 
 		if (objectInView(this.start.x, this.start.y, SIZE, SIZE)) {
 			colorRect(this.start.x, this.start.y, SIZE, SIZE, substColors[WOOD], true)
-			colorRect(this.start.x, this.start.y + SIZE * (3/8), SIZE, SIZE/4, averageHexColors([substColors[METAL], substColors[GRND]]), true);
+			colorRect(this.start.x, this.start.y - SIZE * (3/8), SIZE, SIZE/4, averageHexColors([substColors[METAL], substColors[GRND]]), true);
 			colorRect(this.start.x, this.start.y, SIZE/2, SIZE/2, averageHexColors([substColors[GLASS], substColors[CNCRT]]), true);
 			colorRect(this.start.x, this.start.y + SIZE * (3/8), SIZE/2, SIZE/4, averageHexColors([substColors[WOOD], substColors[CNCRT]]), true);
 			

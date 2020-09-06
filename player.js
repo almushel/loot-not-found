@@ -48,8 +48,7 @@ let player = {
         let emptyTiles = 9 - tileColors.length;
         if (tileColors.length) color = averageHexColors(tileColors.concat(new Array(tileColors.length + emptyTiles).fill(color)));
 
-        ctx.shadowColor = '#000000';
-        ctx.shadowBlur = 2;
+        setShadow('black', 2);
         
         if (this.items[this.held]) this.items[this.held].drawHeld();
 
@@ -59,7 +58,7 @@ let player = {
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
         ctx.fill();
 
-        ctx.shadowBlur = 0;
+        resetShadow();
 
         ctx.strokeStyle = '#ffffff';
         ctx.beginPath();

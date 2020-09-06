@@ -48,13 +48,27 @@ function drawItemMenu() {
 function drawHUD() {
     const fontSize = w/50;
     let x = Math.floor(canvas.width/2), y = canvas.height - Math.floor(fontSize * 2);
-    ctx.shadowBlur = 6;
+    setShadow('black', 6);
     colorRect(x, y + fontSize/2, fontSize * 25, fontSize * 3, averageHexColors([substColors[CNCRT], substColors[GRND]]), true);
-    ctx.shadowBlur = 0;
+    resetShadow();
 
     drawHP(x, y, fontSize);
     drawLoot(x - fontSize * 5, y, fontSize);
     drawHeldItem(x + fontSize * 5, y, fontSize);
+    
+    let exit = currentLevel.exit;
+    if (exit.locked) {
+        ctx.font = exit.size/2 +'px Arial';
+        let width = ctx.measureText('ESCAPE THE AREA').width / 2,
+            x = exit.x - panX, 
+            y = exit.y - panY;
+            padding = exit.size/2;
+        x = clamp(x, width + padding/2, w - width - padding/2);
+        y = clamp(y, padding, h - padding);
+        setShadow(substColors[FIRE], 3, 1, 1);
+        colorText('ESCAPE THE AREA', x, y, substColors[GOLD], null, 'center', 'middle');
+        resetShadow();
+    }
 }
 
 function drawHP (x, y, fontSize) {

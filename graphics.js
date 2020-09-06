@@ -14,6 +14,20 @@ function colorRect(x, y, w, h, color, center) {
     ctx.fillRect(x + xOffset, y + yOffset, w, h);
 }
 
+function setShadow(color, blur, oX, oY) {
+    if (color) ctx.shadowColor = color;
+    if (blur) ctx.shadowBlur = blur; 
+    if (oX) ctx.shadowOffsetX = oX;
+    if (oY) ctx.shadowOffsetY = oY;
+}
+
+function resetShadow() {
+    ctx.shadowColor = '';
+    ctx.shadowBlur = 0; 
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+}
+
 function averageHexColors(colors) {
     if (colors.length == 1) return colors[0];
     let total = [0,0,0];
@@ -53,4 +67,35 @@ function addHexColors(color1, color2) {
     }
 
     return ('#' + sums[0].toString(16) + sums[1].toString(16) + sums[2].toString(16));
+}
+
+function screenTransition(fromDraw, toDraw, callback) {
+    const timeLimit = 30;
+    if (screenTransition.timer == undefined) screenTransition.timer = 0;
+    if (screenTransition.direction == undefined) screenTransition.direction = 1;
+    
+    if (screenTransition.direction > 0) {
+        if (screenTransition.timer < timeLimit) {
+            screenTransition.timer += screenTransition.direction;
+            fromDraw();
+            ctx.globalAlpha = screenTransition.timer / timeLimit;
+            colorRect(0,0,w,h,'black');
+            ctx.globalAlpha = 1;
+        } else screenTransition.direction = -1;
+    } else if (screenTransition.direction < 1) {
+        if (screenTransition.timer > 0) {
+            screenTransition.timer += screenTransition.direction;
+            toDraw();
+            ctx.globalAlpha = screenTransition.timer / timeLimit;
+            colorRect(0,0,w,h,'black');
+            ctx.globalAlpha = 1;
+        }
+        else {
+            screenTransition.timer = 0;
+            screenTransition.direction = 1;
+            callback();
+            return true;
+        }
+    }
+    return false;
 }
