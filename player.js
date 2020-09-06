@@ -37,7 +37,10 @@ let player = {
         if (this.interactables[0]) this.interactables[0].onInteract();
     },
     use() { //Use current held item
-        if (this.items[this.held]) this.items[this.held].onUse();
+        let heldItem = this.items[this.held];
+        if (heldItem && (heldItem.durability == undefined || heldItem.durability > 0))  {
+            heldItem.onUse();
+        }
     },
     draw() {
         let color = this.isDead ? '#203060' : this.color;

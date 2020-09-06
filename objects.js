@@ -56,7 +56,7 @@ class LootPiece extends GameObject{
 }
 
 class Hammer extends GameObject {
-	durability = 100;
+	_durability = 100;
 	useTime = 20;
 	timer = 0;
 	rotation = new Vector2(0, 1);
@@ -86,6 +86,7 @@ class Hammer extends GameObject {
 		if (!this.timer) return;
 		this.timer++;
 		if (this.timer == Math.floor(this.useTime / 2)) {
+			let hit = 0;
 			let ix = player.x + player.rotation.x * this.size, iy = player.y + player.rotation.y * this.size;
 			let index = tileAtCoords(ix, iy);
 			let tiles = tilesNearIndex(index);
@@ -93,8 +94,10 @@ class Hammer extends GameObject {
 				let type = currentLevel.getType(0, tile);
 				if (type == WOOD || type == CNCRT || type == GLASS) {
 					currentLevel.addLife(0, tile, -25);
+					hit++;
 				}
 			}
+			if (hit) this.durability -= 10;
 		} else if (this.timer == this.useTime + 8) {
 			this.timer = 0;
 		}
@@ -123,6 +126,9 @@ class Hammer extends GameObject {
 			ctx.translate(-player.x, -player.y);
 		}
 	}
+
+	get durability() { return this._durability }
+	set durability(value) { this._durability = clamp(value, 0, 100); }
 }
 
 class FireBomb extends GameObject {
@@ -212,6 +218,7 @@ class Grenade extends GameObject {
 				for (let x = -this._blastRadius + 1; x < this._blastRadius; x++) {
 					if (Math.abs(x) + Math.abs(y) > this._blastRadius) continue;
 					let checkTile = tile + (y * currentLevel.width);
+					if (currentLevel.getType(0, checkTile) == METAL) continue;
 					if (Math.floor(checkTile / currentLevel.width) !=  Math.floor((checkTile += x) / currentLevel.width)) continue;
 					currentLevel.setType(1, checkTile, FIRE);
 					currentLevel.addLife(0, checkTile, -200);

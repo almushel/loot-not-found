@@ -55,7 +55,7 @@ substanceTypes[GRND] = { life: Infinity, quantity: 1, state: 0, effects: new Set
 //liquid/solid
 substanceTypes[CNCRT] = { life: 100, quantity: 1, state: 1, effects: EMPTY_SET, ondeath: NOEFF, };
 substanceTypes[WOOD] = { life: 50, quantity: 1, state: 1, effects: new Set([FIRE]), ondeath: NOEFF, };
-substanceTypes[METAL] = { life: 200, quantity: 1, state: 1, effects: new Set([SHOCK]), ondeath: NOEFF, };
+substanceTypes[METAL] = { life: Infinity, quantity: 1, state: 1, effects: new Set([SHOCK]), ondeath: NOEFF, };
 substanceTypes[GLASS] = { life: 25, quantity: 1, state: 1, effects: EMPTY_SET, ondeath: NOEFF, };
 substanceTypes[WATER] = { life: 100, quantity: 32, state: 2, effects: new Set([SMOKE, STEAM, SHOCK, GAS, WATER, BLOOD]), ondeath: NOEFF, };
 substanceTypes[OIL] = { life: 200, quantity: 8, state: 2, effects: new Set([SMOKE, STEAM, GAS, FIRE, OIL, WATER]), ondeath: NOEFF, };

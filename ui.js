@@ -1,7 +1,6 @@
 const HP_COLOR = '#ff6060'
 
 function drawMainMenu() {
-    //ctx.fillStyle = 
     let tHeight = canvas.height/4 * (canvas.width/canvas.height/2);
     tHeight = clamp(tHeight, 0, canvas.width / 1.5);
     ctx.textAlign = 'center';
@@ -32,7 +31,15 @@ function drawUI() {
 function drawItemMenu() {
     const itemBoxSize = TILE_SIZE * 2;
     let bx = player.x - panX - itemBoxSize/2, by = player.y - panY - itemBoxSize/2;
-    let index = 0;
+	let index = 0;
+	
+	if (player.held >= 0) {
+		ctx.fillStyle = 'white';
+		ctx.textAlign = 'center';
+		ctx.font = '16px Arial'
+		ctx.fillText('Press [Interact] to drop selected item', player.x - panX, by - itemBoxSize - 16);
+	}
+
     for (let y = -1; y < 2; y++) {
         for (let x = -1; x < 2; x++) {
             if ( (Math.abs(y) == 1 && Math.abs(x) == 0) || Math.abs(x) == 1 && Math.abs(y) == 0) {
@@ -86,8 +93,8 @@ function drawLoot(x, y, fontSize) {
 
     let lootWidth = ctx.measureText('LOOT').width;
     let numWidth = ctx.measureText(100).width;
-    let left = x - (lootWidth + numWidth + fontSize);
-    let top = y + fontSize/2;
+    let top = y, left = x - (lootWidth + numWidth + fontSize);
+    
    
     ctx.fillText('LOOT', left, top);
     ctx.fillStyle = '#ffca00';
@@ -96,14 +103,29 @@ function drawLoot(x, y, fontSize) {
 }
 
 function drawHeldItem(x, y, fontSize) {
+    let heldItem = player.items[player.held];
     let item = (player.items[player.held] ? player.items[player.held].constructor.name : 'No Item').toUpperCase();
     
     ctx.font = fontSize + 'px Arial';
     let boxSize = ctx.measureText('FIREBOMB').width + fontSize;
-    let top = y + fontSize/2, left = x + boxSize/2 + fontSize/2;
+    let top = y, left = x + boxSize/2 + fontSize/2;
 
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillStyle = 'white';
     ctx.fillText(item, left, top);
+
+    if (heldItem && heldItem.durability != undefined) {
+        if (heldItem.durability > 0) {
+            let barSize = boxSize/1.5;
+            let durSize = barSize * (player.items[player.held].durability/100);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(left - barSize/2 - 1, top + fontSize/2 - 1, barSize + 2, 12);
+            ctx.fillStyle = HP_COLOR;
+            ctx.fillRect(left - durSize/2, top + fontSize/2, durSize, 10);
+        } else  {
+			ctx.fillStyle = HP_COLOR;
+			ctx.fillText('BROKEN', left, top + fontSize);
+		}
+    }
 }

@@ -118,7 +118,7 @@ class LevelExit extends GameObject {
 		let locked = this.locked ? ' (Locked)' : '';
 		ctx.fillStyle = 'white';
 		ctx.font = '16px Arial';
-		ctx.fillText('Exit' + locked, x, y - this.size/2);
+		ctx.fillText('Exit' + locked, x, y - this.size/2 - 16);
 	}
 
 	get locked() { return player.loot < 404; }
