@@ -34,6 +34,7 @@
 		function newGame() {
 			particles.reset();
 			currentLevel = generateLevel(9, 9);
+			player.reset();
 			player.position.x = currentLevel.start.x;
 			player.position.y = currentLevel.start.y;
 
@@ -47,33 +48,48 @@
 				currentLevel.objects.push(new FireBomb(player.x + TILE_SIZE * 4, player.y));
 
 			}
-			//gameState = 1
 		}
 
 		function update() {
+			//static variables for screen fade out/in transitions
+			if (update.transition == undefined) update.transition = new Array(3);
 			if (update.transitioning == undefined) update.transitioning = false;
-			switch (gameState) {
-				case 0: {
-					if (!update.transitioning) {
+	
+			if (update.transitioning) {
+				screenTransition(update.transition[0], update.transition[1], update.transition[2])
+			} else {
+				switch (gameState) {
+					case 0: {
+						drawMainMenu();
 						if (controls.interact) {
 							newGame();
 							updateCamera();
+							update.transition = [drawMainMenu, draw, () => { gameState = 1; update.transitioning = false }]
 							update.transitioning = true;
 						}
-						drawMainMenu();
-					} else screenTransition(drawMainMenu, draw, () => {gameState = 1; update.transitioning = false});
-				} break;
-				case 1: {
-					physicsUpdate();
-					updateCamera();
-					draw();
-				} break;
-				case 2:  {
-				
-				} break;
-				case 3:  {
-				
-				} break;
+					} break;
+					case 1: {
+						physicsUpdate();
+						updateCamera();
+						draw();
+					} break;
+					case 2: {
+						physicsUpdate();
+						draw();
+						drawGameOver();
+						if (controls.interact) {
+							update.transitioning = true;
+							update.transition = [() => {draw(); drawGameOver(); }, drawMainMenu, () => { gameState = 0; update.transitioning = false }];
+						}
+					} break;
+					case 3: {
+						drawWinScreen();
+						if (controls.interact) {
+							update.transitioning = true;
+							update.transition = [drawWinScreen, drawMainMenu, () => { gameState = 0; update.transitioning = false }];
+						}
+					} break;
+				}
 			}
 		}
 

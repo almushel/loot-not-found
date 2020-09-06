@@ -32,9 +32,10 @@ function averageHexColors(colors) {
     if (colors.length == 1) return colors[0];
     let total = [0,0,0];
     for (let color of colors) {
-        total[0] += parseInt(color.slice(1, 3), 16);
-        total[1] += parseInt(color.slice(3, 5), 16);
-        total[2] += parseInt(color.slice(5, 7), 16);
+        let parsed = hexColorToInts(color);
+        total[0] += parsed[0];
+        total[1] += parsed[1];
+        total[2] += parsed[2];;
     }
 
     if (total[0]) total[0] = clamp(Math.floor(total[0] / colors.length), 0, 255);

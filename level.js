@@ -78,7 +78,10 @@ class LevelExit extends GameObject {
 	}
 	
 	onInteract() {
-		if (!this.locked) newGame();
+		if (!this.locked) {
+			update.transition = [draw, drawWinScreen, () => { gameState = 3; update.transitioning = false }];
+			update.transitioning = true;
+		}
 	}
 
 	draw() {

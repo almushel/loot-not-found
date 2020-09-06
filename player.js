@@ -11,6 +11,16 @@ let player = {
     velocity: new Vector2(0, 0),
     acceleration: TILE_SIZE / 60,
     type: 'circle', physics: 'dynamic',
+    reset() {
+        this.isDead = false;
+        this._hp = 100;
+        this.loot = 0;
+        this.items.fill(null);
+        this.held = -1;
+        this.velocity.length = 0;
+        this.rotation.x = 0;
+        this.rotation.y = 1;
+    },
     pickup(item) {
         for (let i = 0; i < this.items.length; i++) {
             if (!this.items[i]) {
@@ -71,9 +81,10 @@ let player = {
         }
     },
     die() {
-        this.isDead = true
+        this.isDead = true;
         let dIndex = tileAtCoords(this.position.x, this.position.y);
         currentLevel.spawnTile(dIndex, BLOOD);
+        gameState = 2;
     },
     get radius() { return this.size },
     get x() { return this.position.x },

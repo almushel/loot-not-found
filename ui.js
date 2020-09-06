@@ -5,17 +5,34 @@ function drawMainMenu() {
     tHeight = clamp(tHeight, 0, canvas.width / 1.5);
     colorText('Loot Not Found', canvas.width/2, canvas.height/2, substColors[GOLD], 
                 tHeight + 'px Arial', 'center', 'middle');
+    drawPressInteract(tHeight, 'start');
+}
 
-    ctx.font = tHeight/2 + 'px Arial';
-    let yOffset = (tHeight * 1.25)/2;
+function drawWinScreen() {
+    let tHeight = canvas.height/6 * (canvas.width/canvas.height/2);
+    tHeight = clamp(tHeight, 0, canvas.width / 1.5);
+    colorText('Escape Successful', canvas.width/2, canvas.height/2, substColors[GOLD], tHeight + 'px Arial', 'center', 'middle'); 
+    drawPressInteract(tHeight, 'play again');
+}
+
+function drawGameOver() {
+    let tHeight = canvas.height/6 * (canvas.width/canvas.height/2);
+    tHeight = clamp(tHeight, 0, canvas.width / 1.5);
+    colorText('You Died', canvas.width/2, canvas.height/2, substColors[FIRE], tHeight + 'px Arial', 'center', 'middle'); 
+    drawPressInteract(tHeight, 'restart');
+}
+
+function drawPressInteract(fontSize, action) {
+    ctx.font = fontSize/2 + 'px Arial';
+    let yOffset = (fontSize * 1.25)/2;
     let x = canvas.width/2, y = canvas.height/2 + yOffset;
-    let xOffset = -ctx.measureText('Press [Interact] to start').width/3;
+    let xOffset = -ctx.measureText('Press [Interact] ' + action).width/3;
     
     colorText('Press ', x + xOffset, y, substColors[METAL]);
     xOffset += ctx.measureText('Press ').width/2 + ctx.measureText('[Interact] ').width/2;
     colorText('[Interact] ', x + xOffset, y, substColors[FIRE]);
-    xOffset += ctx.measureText('[Interact] ').width/2 + ctx.measureText('to start').width/2;
-    colorText('to start', x + xOffset, y, substColors[METAL]);
+    xOffset += ctx.measureText('[Interact] ').width/2 + ctx.measureText('to ' + action).width/2;
+    colorText('to ' + action, x + xOffset, y, substColors[METAL]);
 }
 
 function drawUI() {
