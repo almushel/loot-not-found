@@ -73,29 +73,19 @@ function screenTransition(fromDraw, toDraw, callback) {
     const timeLimit = 30;
     if (screenTransition.timer == undefined) screenTransition.timer = 0;
     if (screenTransition.direction == undefined) screenTransition.direction = 1;
+
+    let draws = [toDraw, fromDraw];
+    screenTransition.timer += screenTransition.direction;
     
-    if (screenTransition.direction > 0) {
-        if (screenTransition.timer < timeLimit) {
-            screenTransition.timer += screenTransition.direction;
-            fromDraw();
-            ctx.globalAlpha = screenTransition.timer / timeLimit;
-            colorRect(0,0,w,h,'black');
-            ctx.globalAlpha = 1;
-        } else screenTransition.direction = -1;
-    } else if (screenTransition.direction < 1) {
-        if (screenTransition.timer > 0) {
-            screenTransition.timer += screenTransition.direction;
-            toDraw();
-            ctx.globalAlpha = screenTransition.timer / timeLimit;
-            colorRect(0,0,w,h,'black');
-            ctx.globalAlpha = 1;
-        }
-        else {
-            screenTransition.timer = 0;
-            screenTransition.direction = 1;
-            callback();
-            return true;
-        }
+    if (screenTransition.timer > timeLimit) screenTransition.direction = -1;
+    else if (screenTransition.direction < 0 && screenTransition.timer < 0) {
+        screenTransition.timer = screenTransition.direction = undefined;
+        callback();
+        return;
     }
-    return false;
+
+    draws[clamp(screenTransition.direction, 0, 1)]();
+    ctx.globalAlpha = screenTransition.timer / timeLimit;
+    colorRect(0,0,w,h,'black');
+    ctx.globalAlpha = 1;
 }

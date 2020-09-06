@@ -47,16 +47,21 @@
 				currentLevel.objects.push(new FireBomb(player.x + TILE_SIZE * 4, player.y));
 
 			}
-			gameState = 1
+			//gameState = 1
 		}
 
 		function update() {
+			if (update.transitioning == undefined) update.transitioning = false;
 			switch (gameState) {
 				case 0: {
-					if (controls.interact) {
-						newGame();
-					}
-					drawMainMenu();
+					if (!update.transitioning) {
+						if (controls.interact) {
+							newGame();
+							updateCamera();
+							update.transitioning = true;
+						}
+						drawMainMenu();
+					} else screenTransition(drawMainMenu, draw, () => {gameState = 1; update.transitioning = false});
 				} break;
 				case 1: {
 					physicsUpdate();

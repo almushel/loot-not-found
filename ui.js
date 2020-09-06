@@ -57,7 +57,7 @@ function drawHUD() {
     drawHeldItem(x + fontSize * 5, y, fontSize);
     
     let exit = currentLevel.exit;
-    if (exit.locked) {
+    if (!exit.locked) {
         ctx.font = exit.size/2 +'px Arial';
         let width = ctx.measureText('ESCAPE THE AREA').width / 2,
             x = exit.x - panX, 
