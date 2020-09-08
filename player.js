@@ -16,6 +16,7 @@ let player = {
         this._hp = 100;
         this.loot = 0;
         this.items.fill(null);
+        this.items[0] = new Hammer(0, 0);
         this.held = -1;
         this.velocity.length = 0;
         this.rotation.x = 0;

@@ -94,6 +94,14 @@ effectMatrix[FIRE][SMOKE] = SMOKE;
 effectMatrix[FIRE][STEAM] = STEAM;
 effectMatrix[STEAM][FIRE] = STEAM;
 
+const ITEMS = [
+	Hammer,
+	FireBomb,
+	Grenade,
+	Balloon,
+	Key,
+]
+
 let canvas, ctx, w, h, panX, panY;
 let particles;
 

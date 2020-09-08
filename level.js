@@ -240,8 +240,9 @@ function generateLevel(width, height) {
 					height = Math.floor(MIN_ROOM_SIZE + Math.random() * (ROOM_SIZE - MIN_ROOM_SIZE)),
 					left = Math.floor(Math.random() * (ROOM_SIZE - width)),
 					top = Math.floor(Math.random() * (ROOM_SIZE - height));
+					type = WALL_SUBST[Math.floor(Math.random() * WALL_SUBST.length)];
 			
-				rooms.push([left, top, left + width, top + height]);
+				rooms.push([left, top, left + width, top + height, type]);
 			}
 			index++;
 		}
@@ -263,11 +264,14 @@ function generateTileGrid(rooms, width, height) {
 				continue;
 			}
 
-			let wallType = WALL_SUBST[Math.floor(Math.random() * WALL_SUBST.length)];
 			let left = rooms[room][0], top = rooms[room][1], right = rooms[room][2], bottom = rooms[room][3];
+			let wallType = rooms[room][4];
 			let openings = createOpenings(rooms[room]);
 			let di = Math.floor(Math.random() * openings.length);
 			let doorOpening = openings[di];
+			if (wallType == WOOD) spawnItem(roomIndex, rooms[room], level);
+			else generateLoot(roomIndex, rooms[room], level); 
+			
 			for (let ry = top; ry < bottom; ry++) {
 				for (let rx = left; rx < right; rx++) {
 					let tileIndex = roomIndex + (ry * ROOM_SIZE * width) + rx;
@@ -276,29 +280,15 @@ function generateTileGrid(rooms, width, height) {
 						if (rx == doorOpening[0] && ry == doorOpening[1]) {
 							let dx = tileIndex % level.width, dy = (tileIndex - x) / level.width;
 							let door = new Door(Math.floor(dx) * TILE_SIZE, Math.floor(dy) * TILE_SIZE);
-							if (wallType == METAL || (wallType == CNCRT && Math.random() > 0.6))
-								door.locked = true;
-							door.x += TILE_SIZE/2;
-							door.y += TILE_SIZE/2;
+							if (wallType != WOOD || Math.random() > 0.8) { door.locked = true; }
+							door.x += TILE_SIZE / 2;
+							door.y += TILE_SIZE / 2;
 							level.objects.push(door);
 						}
-						continue;
-					}
-					//Offset room index [left, top] by tile index
-					if (rx >= left || ry >= top || rx <= right - 1 || ry <= bottom - 1) {
-						if (rx == left || ry == top || rx == right - 1 || ry == bottom - 1) {
-							level.setType(0, tileIndex, wallType);
-							level.setQuantity(0, tileIndex, 1);
-							level.setLife(0, tileIndex, substanceTypes[wallType].life);
-						} else if (Math.random() > 0.9) {
-							let lx = tileIndex % level.width, ly = (tileIndex - x) / level.width;
-							let loot = new LootPiece(Math.floor(lx) * TILE_SIZE, Math.floor(ly) * TILE_SIZE);
-							loot.x += loot.size;
-							loot.y += loot.size;
-							
-							level.objects.push(loot);
-							lootLeft -= loot.value;
-						}
+					} else if (rx == left || ry == top || rx == right - 1 || ry == bottom - 1) {
+						level.setType(0, tileIndex, wallType);
+						level.setQuantity(0, tileIndex, 1);
+						level.setLife(0, tileIndex, substanceTypes[wallType].life);
 					}
 				}
 			}
@@ -314,14 +304,36 @@ function generateTileGrid(rooms, width, height) {
 			
 			roomIndex += ROOM_SIZE;
 		}
-		//Skip the full row of rooms
+		//Skip the remaining rows of the rooms just created
 		roomIndex += ROOM_SIZE * width * ROOM_SIZE;
 	}
 
-	//Random start point
-	//Random exit point
-
 	return sealLevel(level);
+}
+
+function generateLoot(topLeftIndex, room, level) {
+	let left = topLeftIndex % level.width, top = (topLeftIndex - left) / level.width;
+	for (let y = room[1] + 1; y < room[3] - 1; y++) {
+		for (let x = room[0] + 1; x < room[2] - 1; x++) {
+			if (Math.random() > 0.9) {
+				let lx = (left + x) * TILE_SIZE, ly = (top + y) * TILE_SIZE;
+				let loot = new LootPiece(Math.floor(lx), Math.floor(ly));
+				loot.x += loot.size;
+				loot.y += loot.size;
+				
+				level.objects.push(loot);
+			}
+		}
+	}
+}
+
+function spawnItem(topLeftIndex, room, level) {
+	let left = topLeftIndex % level.width, top = (topLeftIndex - left) / level.width;
+	let x = left + (room[0] + room[2]) / 2;
+	let y = top + (room[1] + room[3]) / 2;
+	let item = new ITEMS[Math.floor(Math.random() * ITEMS.length)](x * TILE_SIZE, y * TILE_SIZE);
+
+	level.objects.push(item);
 }
 
 function createOpenings(room) {

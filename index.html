@@ -8,7 +8,6 @@
 			padding: 0;
 		}
 	</style>
-	<script src='globals.js'></script>
 	<script src='physics.js'></script>
 	<script src='graphics.js'></script>
 	<script src='particles.js'></script>
@@ -18,6 +17,7 @@
 	<script src='camera.js'></script>
 	<script src='ui.js'></script>
 	<script src='input.js'></script>
+	<script src='globals.js'></script>
 	<script src='player.js'></script>
 	<script>
 		this.onload = () => {
@@ -37,17 +37,6 @@
 			player.reset();
 			player.position.x = currentLevel.start.x;
 			player.position.y = currentLevel.start.y;
-
-			const DEBUG = true;
-			if (DEBUG) {
-				let centerTile = tileAtCoords(currentLevel.width / 2 * TILE_SIZE, currentLevel.height / 2 * TILE_SIZE);
-				currentLevel.spawnTile(centerTile + 11, WATER);
-				currentLevel.spawnTile(centerTile - 11, OIL);
-
-				currentLevel.objects.push(new Key(player.x - TILE_SIZE * 4, player.y));
-				currentLevel.objects.push(new FireBomb(player.x + TILE_SIZE * 4, player.y));
-
-			}
 		}
 
 		function update() {
