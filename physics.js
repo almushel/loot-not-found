@@ -108,6 +108,7 @@ function updateElements() {
 				particles.spawn([type, tx + PARTICLE_SIZE, ty + PARTICLE_SIZE, 1 - (Math.random() * 2), 1 - (Math.random() * 2), PARTICLE_SIZE], 1);
 				particles.spawn([type, tx+ PARTICLE_SIZE, ty, 1 - (Math.random() * 2), 1 - (Math.random() * 2), PARTICLE_SIZE], 1);
 				currentLevel.resetTile(layer, e);
+				zzfx(...[.75,.01,100,.02,,.6,4,1.33,-0.6,,,,.015,,40,.2,,.5]);
 			}
 
 			if (layer == 1) elementEffectOnTile(e, type);

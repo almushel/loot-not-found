@@ -40,6 +40,7 @@ class LootPiece extends GameObject{
 		if (this.active && withObject == player) {
 			player.loot += this.value;
 			this.active = false;
+			zzfx(...[.3,,700,,.02,.16,,1.78,,,606,.05,,,.2,.04,,.51,,.11]);
 		}
 	}
 
@@ -90,12 +91,15 @@ class Hammer extends GameObject {
 			let tiles = tilesNearIndex(index);
 			for (let tile of tiles) {
 				let type = currentLevel.getType(0, tile);
-				if (type == WOOD || type == CNCRT || type == GLASS) {
+				if (SOLID_SUBST_SET.has(type)) {
 					currentLevel.addLife(0, tile, -25);
 					hit++;
 				}
 			}
-			if (hit) this.durability -= 10;
+			if (hit) {
+				zzfx(...[,,400,,,0,2,.8,,,,,,4,-0.5,.8,,.55,.05]);
+				this.durability -= 10;
+			}
 		} else if (this.timer == this.useTime + 8) {
 			this.timer = 0;
 		}
@@ -162,6 +166,7 @@ class FireBomb extends GameObject {
 				currentLevel.spawnTile(tile, OIL);
 				currentLevel.spawnTile(tile, FIRE);
 			}
+			zzfx(...[.5,.02,356,.15,,.4,4,1.33,-0.6,,,,,,,.1,,.2,.3])
 			let index = currentLevel.objects.indexOf(this);
 			if (index >= 0) currentLevel.objects.splice(index, 1);
 		}
@@ -220,6 +225,7 @@ class Grenade extends GameObject {
 					currentLevel.addLife(0, checkTile, -200);
 				}
 			}
+			zzfx(...[,,1e3,,.02,.3,4,3,.8,.5,,,,,12,.7]);
 				
 			let index = currentLevel.objects.indexOf(this);
 			if (index >= 0) currentLevel.objects.splice(index, 1);
@@ -269,7 +275,7 @@ class Balloon extends GameObject {
 			for (let tile of tiles) {
 				currentLevel.spawnTile(tile, WATER);
 			}
-				
+			zzfx(...[.5,.02,356,.15,,.4,4,1.33,-0.6,,,,,,,.1,,.2,.3])
 			let index = currentLevel.objects.indexOf(this);
 			if (index >= 0) currentLevel.objects.splice(index, 1);
 		}
@@ -301,8 +307,10 @@ class Door extends GameObject {
 			let hit = checkCollision(player, getTileCollider(tileAtCoords(this.x, this.y))).hit;
 			if (this.open) {
 				if (!hit) this.open = false;
+				zzfx(...[,,100,,.1,.2,1,2,,,100,.01,.05,.9,50,,,.4,.1,1]);
 			} else {
 				this.open = true;
+				zzfx(...[,,100,,.1,.2,1,2,,,100,.01,.05,.9,50,,,.4,.1,1]);
 			}
 		}
 	}

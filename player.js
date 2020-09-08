@@ -29,6 +29,7 @@ let player = {
                 this.items[i] = item;
                 this.held = i;
         
+                zzfx(...[.2,,1e3,,,.09,,.65,,49,,,,,120,,,.12,.02,.08]);
                 let index = currentLevel.objects.indexOf(item);
                 if (index >= 0) currentLevel.objects.splice(index, 1);
                 break;
@@ -42,15 +43,19 @@ let player = {
             item.x = this.x;
             item.y = this.y;
             currentLevel.objects.push(item);
+            zzfx(...[,,880,.1,,.25,,3,,,200,.2,,,59.9,,,.9]);
         }
     },
     interact() { //Interact with nearby object
-        if (this.interactables[0]) this.interactables[0].onInteract();
+        if (this.interactables[0]) {
+            this.interactables[0].onInteract();
+        }
     },
     use() { //Use current held item
         let heldItem = this.items[this.held];
         if (heldItem && (heldItem.durability == undefined || heldItem.durability > 0))  {
             heldItem.onUse();
+            zzfx(...[,,440,.01,,,,,,,220,.012,,,60]);
         }
     },
     draw() {

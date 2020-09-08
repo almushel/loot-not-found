@@ -21,11 +21,13 @@ function setControl(key, to) {
 function control() {
 	let av = new Vector2(0, 0);
 	if (controls.items) {
+		let currentHeld = player.held;
 		if (controls.u) player.held = 0;
 		if (controls.l) player.held = 1;
 		if (controls.r) player.held = 2;
 		if (controls.d) player.held = 3;
 		if (controls.interact) player.drop(player.held);
+		if (player.held != currentHeld) zzfx(...[.3,,1600,,,,,,,,-1600,.01,,,60]);
 	} else {
 		if (controls.l) av.x -= 1;
 		if (controls.r) av.x += 1;
