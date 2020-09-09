@@ -19,7 +19,6 @@ function objectTileCollision(object) {
 					correction.x *= collision.overlap.x;
 					correction.y *= collision.overlap.y;
 					object.position = object.position.add(correction);
-					//object.velocity = object.velocity.add(correction);
 					object.velocity = object.velocity.multiply(FRICTION);
 				} else {
 					if (airType == FIRE) object.hp -= 0.125;
@@ -58,7 +57,7 @@ function checkCollision(col1, col2) {
 	} else if (col1.type == 'rect') {
 		switch (col2.type) {
 			case 'circle':
-				collision = circleRectOverlap(col1, col2);
+				collision = circleRectOverlap(col2, col1);
 				break;
 			case 'rect':
 				collision = aabbOverlap(col1, col2);

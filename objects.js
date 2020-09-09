@@ -73,6 +73,7 @@ class LootPiece extends GameObject{
 			colorRect(x, y, this.size, this.size, color, true);
 		}
 	}
+	set durability(v) {}
 }
 
 class Hammer extends GameObject {
@@ -171,6 +172,7 @@ class FireBomb extends GameObject {
 		if (withObject == player && !this.armed) {
 			player.interactables.push(this);
 		} else if (this.armed) {
+			console.log('armed fb collision');
 			let tiles = tilesNearPosition(this.x, this.y);
 			for (let tile of tiles) {
 				currentLevel.spawnTile(tile, OIL);
@@ -231,6 +233,19 @@ class Grenade extends GameObject {
 					currentLevel.addLife(0, checkTile, -200);
 				}
 			}
+
+			let boomCollider = { x: this.x, y: this.y, type: 'circle', radius: TILE_SIZE + this._blastRadius * TILE_SIZE, };
+
+			currentLevel.objects.forEach(e => {
+				if(e != this && checkCollision(e, boomCollider).hit) {
+					let delta = new Vector2(e.x - this.x, e.y - this.y);
+					delta.length = (delta.length / boomCollider.radius) * TILE_SIZE;
+					e.velocity = e.velocity.add(delta);
+					e.durability -= 100;
+					if (e.armed != undefined) e.armed = 1;
+				}
+			});
+
 			zzfx(...[,,1e3,,.02,.3,4,3,.8,.5,,,,,12,.7]);
 				
 			let index = currentLevel.objects.indexOf(this);
@@ -325,7 +340,7 @@ class Door extends GameObject {
 			//TO-DO: Separate collision from interaction range
 			let overlap = collision.overlap;
 			if (!this.open && (Math.abs(overlap.x) > this.size/3 || Math.abs(collision.overlap.y) > this.size/3)) {
-				if (overlap = checkCollision(whichObject, getTileCollider(tileAtCoords(this.x, this.y))).overlap) {
+				if (overlap = checkCollision(whichObject, {x: this.x, y: this.y, type: 'rect', width: this.size/3, height: this.size/3,}).overlap) {
 					let correction = new Vector2(whichObject.x - this.x, whichObject.y - this.y);
 					if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
 					else correction.x = 0;
@@ -382,4 +397,5 @@ class Key extends GameObject {
 		colorRect(x - this.size/6, y-this.size/4, this.size/3, this.size, substColors[GOLD]);
 		colorRect(x - this.size/3, y+this.size/4, this.size/1.5, this.size/2);
 	}
+	set durability(v) {}
 }
