@@ -1,4 +1,5 @@
 class GameObject {
+	_durability = 100;
 	size = TILE_SIZE;
 	position = new Vector2(0, 0);
 	velocity = new Vector2(0, 0);
@@ -10,7 +11,23 @@ class GameObject {
 		this.position.y = y;
 	}
 
+	onInteract() {
+		player.pickup(this);
+	}
+
 	draw(x, y) {}
+	drawDurability(x, y) {
+		if (this.durability == 0) {
+			ctx.strokeStyle = 'red';
+			ctx.beginPath();
+			let length = this.size/3;
+			ctx.moveTo(x - length, y - length);
+			ctx.lineTo(x + length, y + length);
+			ctx.moveTo(x + length, y - length);
+			ctx.lineTo(x - length, y + length);
+			ctx.stroke();
+		}
+	}
 	drawLabel(x, y) {
 		colorText(this.constructor.name, x, y - TILE_SIZE * 2, 'white', '16px Arial');
 
@@ -25,6 +42,8 @@ class GameObject {
 	get y() { return this.position.y; }
 	set x(value) { this.position.x = value; }
 	set y(value) { this.position.y = value; }
+	get durability() { return this._durability }
+	set durability(value) { this._durability = clamp(value, 0, 100); }
 }
 
 class LootPiece extends GameObject{
@@ -35,6 +54,8 @@ class LootPiece extends GameObject{
 		super(x, y);
 		this.size = TILE_SIZE / 2;
 	}
+
+	onInteract = ()=>{}
 
 	onCollision(withObject) {
 		if (this.active && withObject == player) {
@@ -55,7 +76,6 @@ class LootPiece extends GameObject{
 }
 
 class Hammer extends GameObject {
-	_durability = 100;
 	useTime = 20;
 	timer = 0;
 	rotation = new Vector2(0, 1);
@@ -63,10 +83,6 @@ class Hammer extends GameObject {
 	constructor(x, y) {
 		super(x, y);
 		this.size = TILE_SIZE * 2;
-	}
-
-	onInteract() { //Interaction when not being held by player/character
-		player.pickup(this);
 	}
 
 	onUse() {
@@ -113,6 +129,7 @@ class Hammer extends GameObject {
 		colorRect(0, 0, this.size / 6, this.size, color, true);
 		color = tileType > GRND ? averageHexColors([substColors[tileType], substColors[METAL]]) : substColors[METAL];
 		colorRect(-this.size / 3, -this.size / 2, this.size / 1.5, this.size / 4, color);
+		this.drawDurability(0, 0);
 		ctx.translate(-x, -y)
 	}
  
@@ -128,9 +145,6 @@ class Hammer extends GameObject {
 			ctx.translate(-player.x, -player.y);
 		}
 	}
-
-	get durability() { return this._durability }
-	set durability(value) { this._durability = clamp(value, 0, 100); }
 }
 
 class FireBomb extends GameObject {
@@ -138,10 +152,6 @@ class FireBomb extends GameObject {
 	constructor(x, y) {
 		super(x, y);
 		this.size = TILE_SIZE;
-	}
-
-	onInteract() { //Interaction when not being held by player/character
-		player.pickup(this);
 	}
 
 	onUse() {
@@ -191,10 +201,6 @@ class Grenade extends GameObject {
 	type = 'circle';
 	constructor(x, y) {
 		super(x, y);
-	}
-
-	onInteract() { //Interaction when not being held by player/character
-		player.pickup(this);
 	}
 
 	onUse() {
@@ -250,10 +256,6 @@ class Balloon extends GameObject {
 		super(x, y);
 	}
 
-	onInteract() { //Interaction when not being held by player/character
-		player.pickup(this);
-	}
-
 	onUse() {
 		this.position.x = player.position.x + player.rotation.x * (player.size + this.size);
 		this.position.y = player.position.y + player.rotation.y * (player.size + this.size);
@@ -306,8 +308,10 @@ class Door extends GameObject {
 		if (!this.locked) {
 			let hit = checkCollision(player, getTileCollider(tileAtCoords(this.x, this.y))).hit;
 			if (this.open) {
-				if (!hit) this.open = false;
-				zzfx(...[,,100,,.1,.2,1,2,,,100,.01,.05,.9,50,,,.4,.1,1]);
+				if (!hit) {
+					this.open = false;
+					zzfx(...[,,100,,.1,.2,1,2,,,100,.01,.05,.9,50,,,.4,.1,1]);
+				}
 			} else {
 				this.open = true;
 				zzfx(...[,,100,,.1,.2,1,2,,,100,.01,.05,.9,50,,,.4,.1,1]);
@@ -363,10 +367,6 @@ class Key extends GameObject {
 		}
 	}
 
-	onInteract() {
-		player.pickup(this);
-	}
-
 	onUse() {
 		let interactable = player.interactables[0];
 		if (interactable && interactable.constructor.name == Door.name && interactable.locked) {
@@ -374,6 +374,8 @@ class Key extends GameObject {
 			let index = player.items.indexOf(this);
 			if (index >= 0) player.items[index] = null;
 		}
+
+		return false;
 	}
 
 	draw(x, y) {
