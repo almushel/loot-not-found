@@ -60,19 +60,6 @@ class Vector2 {
 
 function physicsUpdate() {
 	updateElements();
-	for (let object of currentLevel.objects) {
-		if (object.velocity.x != 0 || object.velocity.y != 0) {
-			object.position = object.position.add(object.velocity);
-			object.velocity = object.velocity.multiply(FRICTION);
-			objectTileCollision(object);
-			if (Math.abs(object.velocity.x) < 0.01) object.velocity.x = 0;
-			if (Math.abs(object.velocity.y) < 0.01) object.velocity.y = 0;
-			if (Math.abs(object.velocity.x) == 0 && Math.abs(object.velocity.y) == 0) {
-				object.active = true;
-				object.onCollision(null);
-			}
-		}
-	}
 	let cv = control();
 	if (cv) {
 		player.rotation = player.rotation.add(cv).normalize();
@@ -85,10 +72,23 @@ function physicsUpdate() {
 	objectTileCollision(player);
 	player.interactables.length = 0;
 	for (let object of currentLevel.objects) {
-		if (!pointInView(object.x, object.y)) continue;
-		let collision = checkCollision(player, object);
-		if (collision.hit) {
-			object.onCollision(player, collision);
+		if (object.velocity.x != 0 || object.velocity.y != 0) {
+			object.position = object.position.add(object.velocity);
+			object.velocity = object.velocity.multiply(FRICTION);
+			objectTileCollision(object);
+			if (Math.abs(object.velocity.x) < 0.01) object.velocity.x = 0;
+			if (Math.abs(object.velocity.y) < 0.01) object.velocity.y = 0;
+			if (Math.abs(object.velocity.x) == 0 && Math.abs(object.velocity.y) == 0) {
+				object.active = true;
+				object.onCollision(null);
+			}
+		}
+
+		if (pointInView(object.x, object.y)) {
+			let collision = checkCollision(player, object.interactCollider);
+			if (collision.hit) {
+				object.onCollision(player, collision);
+			}
 		}
 	}
 	particles.update();

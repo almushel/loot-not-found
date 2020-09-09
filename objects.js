@@ -44,6 +44,7 @@ class GameObject {
 	set y(value) { this.position.y = value; }
 	get durability() { return this._durability }
 	set durability(value) { this._durability = clamp(value, 0, 100); }
+	get interactCollider() {return this}
 }
 
 class LootPiece extends GameObject{
@@ -309,10 +310,11 @@ class Balloon extends GameObject {
 }
 
 class Door extends GameObject {
-	size = TILE_SIZE * 3;
+	size = TILE_SIZE;
 	physics = 'static';
 	locked = false;
 	open = false;
+
 	constructor(x, y) {
 		super(x, y);
 	}
@@ -321,7 +323,7 @@ class Door extends GameObject {
 		let key = player.items[player.held];
 		if (key && key.constructor.name == Key.name) key.onUse();
 		if (!this.locked) {
-			let hit = checkCollision(player, getTileCollider(tileAtCoords(this.x, this.y))).hit;
+			let hit = checkCollision(player, this).hit;
 			if (this.open) {
 				if (!hit) {
 					this.open = false;
@@ -337,10 +339,10 @@ class Door extends GameObject {
 	onCollision(whichObject, collision) {
 		if (whichObject == player) {
 			player.interactables.push(this);
-			//TO-DO: Separate collision from interaction range
+
 			let overlap = collision.overlap;
-			if (!this.open && (Math.abs(overlap.x) > this.size/3 || Math.abs(collision.overlap.y) > this.size/3)) {
-				if (overlap = checkCollision(whichObject, {x: this.x, y: this.y, type: 'rect', width: this.size/3, height: this.size/3,}).overlap) {
+			if (!this.open && (Math.abs(overlap.x) > this.size || Math.abs(collision.overlap.y) > this.size)) {
+				if (overlap = checkCollision(whichObject, this).overlap) {
 					let correction = new Vector2(whichObject.x - this.x, whichObject.y - this.y);
 					if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
 					else correction.x = 0;
@@ -360,7 +362,7 @@ class Door extends GameObject {
 		ctx.fillStyle = substColors[WOOD];
 		ctx.strokeStyle = substColors[METAL];
 		ctx.beginPath();
-		ctx.rect(x - this.size/6, y - this.size/6, this.size/3, this.size/3);
+		ctx.rect(x - this.size/2, y - this.size/2, this.size, this.size);
 		if (!this.open) ctx.fill();
 		ctx.stroke();
 	}
@@ -368,6 +370,10 @@ class Door extends GameObject {
 	drawLabel(x, y) {
 		let locked = (!this.open && this.locked) ? ' (Locked)' : '';
 		colorText(this.constructor.name + locked, x, y - TILE_SIZE * 2, 'white', '16px Arial');
+	}
+
+	get interactCollider() {
+		return {x: this.x, y: this.y, type: 'rect', width: this.size * 3, height: this.size * 3};
 	}
 }
 
