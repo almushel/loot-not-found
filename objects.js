@@ -239,7 +239,7 @@ class Grenade extends GameObject {
 			currentLevel.objects.forEach(e => {
 				if(e != this && checkCollision(e, boomCollider).hit) {
 					let delta = new Vector2(e.x - this.x, e.y - this.y);
-					delta.length = (delta.length / boomCollider.radius) * TILE_SIZE;
+					delta.length = (boomCollider.radius / delta.length) * TILE_SIZE / 2;
 					e.velocity = e.velocity.add(delta);
 					e.durability -= 100;
 					if (e.armed != undefined) e.armed = 1;
