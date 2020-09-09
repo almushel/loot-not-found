@@ -20,13 +20,56 @@ function objectTileCollision(object) {
 					correction.y *= collision.overlap.y;
 					object.position = object.position.add(correction);
 					object.velocity = object.velocity.multiply(FRICTION);
-				} else {
-					if (airType == FIRE) object.hp -= 0.125;
+				} else if (object.tileEffect) {
+					object.tileEffect(airType);
 				}
 			}
 		}
 	}
 
+	return hit;
+}
+
+function continuousTileCollision(object) {
+	let hit = false;
+	let aabbSize = new Vector2(Math.abs(object.velocity.x) + object.size * 2, Math.abs(object.velocity.y) + object.size * 2)
+	let increment = object.size / 4;
+	let subDivisions = Math.floor(aabbSize.length / increment);
+	let velIncrement = object.velocity.normalize().multiply(increment);
+
+	let op = object.position;
+	for (let a = 0; a <= subDivisions; a++) {
+		object.position = object.position.add(velIncrement);
+		let nearTiles = tilesNearPosition(object.x, object.y);
+		for (tile of nearTiles) {
+			let groundType = currentLevel.getType(0, tile);
+			let airType = currentLevel.getType(1, tile);
+	
+			if (groundType > GRND || airType > GRND) {
+				let tileRect = getTileCollider(tile);
+				let collision = checkCollision(object, tileRect);
+				if (collision.hit) {
+					if (substanceTypes[groundType].state == 1) {
+						hit = true;
+						let correction = new Vector2(object.x - tileRect.x, object.y - tileRect.y);
+						if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
+						else correction.x = 0;
+			
+						correction = correction.normalize();
+						correction.x *= collision.overlap.x;
+						correction.y *= collision.overlap.y;
+						object.position = object.position.add(correction);
+						object.velocity = object.velocity.add(correction);
+						object.velocity = object.velocity.multiply(FRICTION);
+					} else if (object.tileEffect) {
+						object.tileEffect(airType);
+					}
+				}
+			}
+		}
+		if (hit) break;
+	}
+	
 	return hit;
 }
 

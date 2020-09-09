@@ -73,9 +73,12 @@ function physicsUpdate() {
 	player.interactables.length = 0;
 	for (let object of currentLevel.objects) {
 		if (object.velocity.x != 0 || object.velocity.y != 0) {
-			object.position = object.position.add(object.velocity);
+			if (object.velocity.length > object.size) continuousTileCollision(object);
+			else {
+				object.position = object.position.add(object.velocity);
+				objectTileCollision(object) 
+			}
 			object.velocity = object.velocity.multiply(FRICTION);
-			objectTileCollision(object);
 			if (Math.abs(object.velocity.x) < 0.01) object.velocity.x = 0;
 			if (Math.abs(object.velocity.y) < 0.01) object.velocity.y = 0;
 			if (Math.abs(object.velocity.x) == 0 && Math.abs(object.velocity.y) == 0) {

@@ -59,6 +59,9 @@ let player = {
             zzfx(...[,,440,.01,,,,,,,220,.012,,,60]);
         }
     },
+    tileEffect(type) {
+       if (type == FIRE) this.hp -= 0.125;
+    },
     draw() {
         let color = this.isDead ? '#203060' : this.color;
         let tileColors = nearTileColors(1, this.x, this.y);

@@ -173,7 +173,6 @@ class FireBomb extends GameObject {
 		if (withObject == player && !this.armed) {
 			player.interactables.push(this);
 		} else if (this.armed) {
-			console.log('armed fb collision');
 			let tiles = tilesNearPosition(this.x, this.y);
 			for (let tile of tiles) {
 				currentLevel.spawnTile(tile, OIL);
