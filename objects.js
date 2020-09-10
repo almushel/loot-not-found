@@ -90,6 +90,7 @@ class Hammer extends GameObject {
 	onUse() {
 		if (this.timer == 0) {
 			this.timer = 1;
+			return true;
 		}
 	}
 
@@ -156,18 +157,7 @@ class FireBomb extends GameObject {
 		this.size = TILE_SIZE;
 	}
 
-	onUse() {
-		this.position.x = player.position.x + player.rotation.x * (player.size + this.size);
-		this.position.y = player.position.y + player.rotation.y * (player.size + this.size);
-		this.velocity = player.velocity.add(player.rotation.multiply(10));
-		
-		if (!objectTileCollision(this)) {
-			this.armed = true;
-			currentLevel.objects.push(this);
-			let index = player.items.indexOf(this);
-			if (index >= 0) player.items[index] = null;
-		} 
-	}
+	onUse = useThrowable;
 
 	onCollision(withObject) {
 		if (withObject == player && !this.armed) {
@@ -205,18 +195,7 @@ class Grenade extends GameObject {
 		super(x, y);
 	}
 
-	onUse() {
-		this.position.x = player.position.x + player.rotation.x * (player.size + this.size);
-		this.position.y = player.position.y + player.rotation.y * (player.size + this.size);
-		this.velocity = player.velocity.add(player.rotation.multiply(10));
-		
-		if (!objectTileCollision(this)) {
-			this.armed = true;
-			currentLevel.objects.push(this);
-			let index = player.items.indexOf(this);
-			if (index >= 0) player.items[index] = null;
-		} 
-	}
+	onUse = useThrowable;
 
 	onCollision(withObject) {
 		if (withObject == player && !this.armed) {
@@ -271,18 +250,7 @@ class Balloon extends GameObject {
 		super(x, y);
 	}
 
-	onUse() {
-		this.position.x = player.position.x + player.rotation.x * (player.size + this.size);
-		this.position.y = player.position.y + player.rotation.y * (player.size + this.size);
-		this.velocity = player.velocity.add(player.rotation.multiply(10));
-		
-		if (!objectTileCollision(this)) {
-			this.armed = true;
-			currentLevel.objects.push(this);
-			let index = player.items.indexOf(this);
-			if (index >= 0) player.items[index] = null;
-		} 
-	}
+	onUse = useThrowable;
 
 	onCollision(withObject) {
 		if (withObject == player && !this.armed) {
@@ -351,8 +319,8 @@ class Door extends GameObject {
 	}
 
 	draw(x, y) {
-		if (this.open) ctx.fillStyle = averageHexColors([substColors[WOOD], substColors[METAL]]);
-		else ctx.fillStyle = substColors[WOOD];
+		if (this.open) ctx.fillStyle = averageHexColors([substColors[WOOD], substColors[GRND]]);
+		else ctx.fillStyle = averageHexColors([substColors[WOOD], substColors[METAL]]);
 		ctx.strokeStyle = substColors[METAL];
 		ctx.beginPath();
 		ctx.rect(x - this.size/2, y - this.size/2, this.size, this.size);
@@ -400,4 +368,19 @@ class Key extends GameObject {
 		colorRect(x - this.size/3, y+this.size/4, this.size/1.5, this.size/2);
 	}
 	set durability(v) {}
+}
+
+function useThrowable() {
+	this.position.x = player.position.x + player.rotation.x * (player.size + this.size);
+	this.position.y = player.position.y + player.rotation.y * (player.size + this.size);
+	this.velocity = player.velocity.add(player.rotation.multiply(10));
+	
+	if (!objectTileCollision(this)) {
+		this.armed = true;
+		currentLevel.objects.push(this);
+		let index = player.items.indexOf(this);
+		if (index >= 0) player.items[index] = null;
+		return true;
+	}
+	return false;
 }

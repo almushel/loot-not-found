@@ -55,8 +55,7 @@ let player = {
     use() { //Use current held item
         let heldItem = this.items[this.held];
         if (heldItem && (heldItem.durability == undefined || heldItem.durability > 0))  {
-            heldItem.onUse();
-            zzfx(...[,,440,.01,,,,,,,220,.012,,,60]);
+            if (heldItem.onUse()) zzfx(...[,,440,.01,,,,,,,220,.012,,,60]);
         }
     },
     tileEffect(type) {
