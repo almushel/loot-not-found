@@ -3,6 +3,7 @@ const HP_COLOR = '#ff6060'
 function drawMainMenu() {
     let tHeight = canvas.height/4 * (canvas.width/canvas.height/2);
     tHeight = clamp(tHeight, 0, canvas.width / 1.5);
+    colorRect(0,0,w,h,substColors[GRND]);
     colorText('Loot Not Found', canvas.width/2, canvas.height/2, substColors[GOLD], 
                 tHeight + 'px Arial', 'center', 'middle');
     drawPressInteract(tHeight, 'start');
@@ -11,15 +12,18 @@ function drawMainMenu() {
 function drawWinScreen() {
     let tHeight = canvas.height/6 * (canvas.width/canvas.height/2);
     tHeight = clamp(tHeight, 0, canvas.width / 1.5);
+    colorRect(0,0,w,h,substColors[GRND]);
     colorText('Escape Successful', canvas.width/2, canvas.height/2, substColors[GOLD], tHeight + 'px Arial', 'center', 'middle'); 
     drawPressInteract(tHeight, 'play again');
 }
 
 function drawGameOver() {
     let tHeight = canvas.height/6 * (canvas.width/canvas.height/2);
+    setShadow('black', 6);
     tHeight = clamp(tHeight, 0, canvas.width / 1.5);
     colorText('You Died', canvas.width/2, canvas.height/2, substColors[FIRE], tHeight + 'px Arial', 'center', 'middle'); 
     drawPressInteract(tHeight, 'restart');
+    resetShadow();
 }
 
 function drawPressInteract(fontSize, action) {

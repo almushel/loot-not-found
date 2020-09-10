@@ -140,7 +140,7 @@ function elementEffectOnTile(tileIndex, elementType) {
 	if (state == 4) { 
 		if (!substanceTypes[tileType].effects.has(elementType)) {
 			//Create interaction type or reset element effect
-			if(!elementInteraction(elementType, tileIndex)) currentLevel.resetTile(0, tileIndex);
+			if(!elementInteraction(elementType, tileIndex)) currentLevel.resetTile(1, tileIndex);
 		} else if (tileType > GRND) {
 			currentLevel.addLife(0, tileIndex, -decay);
 			currentLevel.addLife(1, tileIndex, decay);
