@@ -62,7 +62,7 @@ class LootPiece extends GameObject{
 		if (this.active && withObject == player) {
 			player.loot += this.value;
 			this.active = false;
-			zzfx(...[.3,,700,,.02,.16,,1.78,,,606,.05,,,.2,.04,,.51,,.11]);
+			zzfx(...SOUND_EFFECTS['lootpickup']);
 		}
 	}
 
@@ -116,7 +116,7 @@ class Hammer extends GameObject {
 				}
 			}
 			if (hit) {
-				zzfx(...[,,400,,,0,2,.8,,,,,,4,-0.5,.8,,.55,.05]);
+				zzfx(...SOUND_EFFECTS['hammerhit']);
 				this.durability -= 10;
 			}
 		} else if (this.timer == this.useTime + 8) {
@@ -168,7 +168,7 @@ class FireBomb extends GameObject {
 				currentLevel.spawnTile(tile, OIL);
 				currentLevel.spawnTile(tile, FIRE);
 			}
-			zzfx(...[.5,.02,356,.15,,.4,4,1.33,-0.6,,,,,,,.1,,.2,.3])
+			zzfx(...SOUND_EFFECTS['firebomb']);
 			let index = currentLevel.objects.indexOf(this);
 			if (index >= 0) currentLevel.objects.splice(index, 1);
 		}
@@ -225,7 +225,7 @@ class Grenade extends GameObject {
 				}
 			});
 
-			zzfx(...[,,1e3,,.02,.3,4,3,.8,.5,,,,,12,.7]);
+			zzfx(...SOUND_EFFECTS['boom']);
 				
 			let index = currentLevel.objects.indexOf(this);
 			if (index >= 0) currentLevel.objects.splice(index, 1);
@@ -260,7 +260,7 @@ class Balloon extends GameObject {
 			for (let tile of tiles) {
 				currentLevel.spawnTile(tile, WATER);
 			}
-			zzfx(...[.5,.02,356,.15,,.4,4,1.33,-0.6,,,,,,,.1,,.2,.3])
+			zzfx(...SOUND_EFFECTS['firebomb']);
 			let index = currentLevel.objects.indexOf(this);
 			if (index >= 0) currentLevel.objects.splice(index, 1);
 		}
@@ -295,11 +295,11 @@ class Door extends GameObject {
 			if (this.open) {
 				if (!hit) {
 					this.open = false;
-					zzfx(...[,,100,,.1,.2,1,2,,,100,.01,.05,.9,50,,,.4,.1,1]);
+					zzfx(...SOUND_EFFECTS['door']);
 				}
 			} else {
 				this.open = true;
-				zzfx(...[,,100,,.1,.2,1,2,,,100,.01,.05,.9,50,,,.4,.1,1]);
+				zzfx(...SOUND_EFFECTS['door']);
 			}
 		}
 	}
@@ -309,7 +309,7 @@ class Door extends GameObject {
 			player.interactables.push(this);
 
 			let overlap = collision.overlap;
-			if (!this.open && (Math.abs(overlap.x) > this.size || Math.abs(collision.overlap.y) > this.size)) {
+			if (!this.open && (Math.abs(overlap.x) > this.size/2 || Math.abs(collision.overlap.y) > this.size/2)) {
 				if (overlap = checkCollision(whichObject, this).overlap) {
 					let delta = new Vector2(whichObject.x - this.x, whichObject.y - this.y);
 					correctCollision(whichObject, delta, overlap);
@@ -320,7 +320,7 @@ class Door extends GameObject {
 
 	draw(x, y) {
 		if (this.open) ctx.fillStyle = averageHexColors([substColors[WOOD], substColors[GRND]]);
-		else ctx.fillStyle = averageHexColors([substColors[WOOD], substColors[METAL]]);
+		else ctx.fillStyle = substColors[WOOD];
 		ctx.strokeStyle = substColors[METAL];
 		ctx.beginPath();
 		ctx.rect(x - this.size/2, y - this.size/2, this.size, this.size);
@@ -334,7 +334,7 @@ class Door extends GameObject {
 	}
 
 	get interactCollider() {
-		return {x: this.x, y: this.y, type: 'rect', width: this.size * 3, height: this.size * 3};
+		return {x: this.x, y: this.y, type: 'rect', width: this.size * 2.5, height: this.size * 2.5};
 	}
 
 	get open() { return this._open || this.durability == 0; }

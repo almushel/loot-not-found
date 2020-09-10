@@ -98,6 +98,7 @@ function physicsUpdate() {
 }
 
 function updateElements() {
+	let tileDestroyed = false;
 	for (let e = currentLevel.length - 1; e >= 0; e--) {
 		for (let layer = 0; layer < 2; layer++) {
 			let type = currentLevel.getType(layer, e);
@@ -111,7 +112,7 @@ function updateElements() {
 				particles.spawn([type, tx + PARTICLE_SIZE, ty + PARTICLE_SIZE, 1 - (Math.random() * 2), 1 - (Math.random() * 2), PARTICLE_SIZE], 1);
 				particles.spawn([type, tx+ PARTICLE_SIZE, ty, 1 - (Math.random() * 2), 1 - (Math.random() * 2), PARTICLE_SIZE], 1);
 				currentLevel.resetTile(layer, e);
-				zzfx(...[.75,.01,100,.02,,.6,4,1.33,-0.6,,,,.015,,40,.2,,.5]);
+				tileDestroyed = true;
 			}
 
 			if (layer == 1) elementEffectOnTile(e, type);
@@ -127,6 +128,7 @@ function updateElements() {
 			}
 		}
 	}
+	if (tileDestroyed) zzfx(...SOUND_EFFECTS['destroytile']);
 }
 
 function elementEffectOnTile(tileIndex, elementType) {
@@ -137,7 +139,8 @@ function elementEffectOnTile(tileIndex, elementType) {
 	if (state >= 3) { currentLevel.addLife(1, tileIndex, -decay);}
 	if (state == 4) { 
 		if (!substanceTypes[tileType].effects.has(elementType)) {
-			elementInteraction(elementType, tileIndex);
+			//Create interaction type or reset element effect
+			if(!elementInteraction(elementType, tileIndex)) currentLevel.resetTile(0, tileIndex);
 		} else if (tileType > GRND) {
 			currentLevel.addLife(0, tileIndex, -decay);
 			currentLevel.addLife(1, tileIndex, decay);
@@ -204,10 +207,12 @@ function elementInteraction(fromType, tileTo) {
 		} else interactLayer = 0;
 	} else {
 		console.log('invalid substance type for interaction');
-		result = NOEFF;
+		result = null;
 	}
 	if (result && result > GRND) {
 		currentLevel.resetTile(interactLayer, tileTo);
 		currentLevel.spawnTile(tileTo, result);
+		return true;
 	}
+	return false;
 }

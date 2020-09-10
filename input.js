@@ -27,7 +27,7 @@ function control() {
 		if (controls.r) player.held = 2;
 		if (controls.d) player.held = 3;
 		if (controls.interact) player.drop(player.held);
-		if (player.held != currentHeld) zzfx(...[.3,,1600,,,,,,,,-1600,.01,,,60]);
+		if (player.held != currentHeld) zzfx(...SOUND_EFFECTS['select']);
 	} else {
 		if (controls.l) av.x -= 1;
 		if (controls.r) av.x += 1;

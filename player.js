@@ -30,7 +30,7 @@ let player = {
                 this.items[i] = item;
                 this.held = i;
         
-                zzfx(...[.2,,1e3,,,.09,,.65,,49,,,,,120,,,.12,.02,.08]);
+                zzfx(...SOUND_EFFECTS['pickup']);
                 let index = currentLevel.objects.indexOf(item);
                 if (index >= 0) currentLevel.objects.splice(index, 1);
                 break;
@@ -44,7 +44,7 @@ let player = {
             item.x = this.x;
             item.y = this.y;
             currentLevel.objects.push(item);
-            zzfx(...[,,880,.1,,.25,,3,,,200,.2,,,59.9,,,.9]);
+            zzfx(...SOUND_EFFECTS['drop']);
         }
     },
     interact() { //Interact with nearby object
