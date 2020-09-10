@@ -11,15 +11,8 @@ function objectTileCollision(object) {
 			if (collision.hit) {
 				if (substanceTypes[groundType].state == 1) {
 					hit = true;
-					let correction = new Vector2(object.x - tileRect.x, object.y - tileRect.y);
-					if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
-					else correction.x = 0;
-		
-					correction = correction.normalize();
-					correction.x *= collision.overlap.x;
-					correction.y *= collision.overlap.y;
-					object.position = object.position.add(correction);
-					object.velocity = object.velocity.multiply(FRICTION);
+					let delta = new Vector2(object.x - tileRect.x, object.y - tileRect.y);
+					correctCollision(object, delta, collision.overlap);
 				} else if (object.tileEffect) {
 					object.tileEffect(airType);
 				}
@@ -51,16 +44,8 @@ function continuousTileCollision(object) {
 				if (collision.hit) {
 					if (substanceTypes[groundType].state == 1) {
 						hit = true;
-						let correction = new Vector2(object.x - tileRect.x, object.y - tileRect.y);
-						if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
-						else correction.x = 0;
-			
-						correction = correction.normalize();
-						correction.x *= collision.overlap.x;
-						correction.y *= collision.overlap.y;
-						object.position = object.position.add(correction);
-						object.velocity = object.velocity.add(correction);
-						object.velocity = object.velocity.multiply(FRICTION);
+						let delta = new Vector2(object.x - tileRect.x, object.y - tileRect.y);
+						correctCollision(object, delta, collision.overlap);
 					} else if (object.tileEffect) {
 						object.tileEffect(airType);
 					}
@@ -71,6 +56,18 @@ function continuousTileCollision(object) {
 	}
 	
 	return hit;
+}
+
+function correctCollision(object, delta, overlap) {
+	if (Math.abs(delta.x) > Math.abs(delta.y)) delta.y = 0;
+	else delta.x = 0;
+
+	delta = delta.normalize();
+	delta.x *= overlap.x;
+	delta.y *= overlap.y;
+	object.position = object.position.add(delta);
+	object.velocity = object.velocity.add(delta);
+	object.velocity = object.velocity.multiply(FRICTION);
 }
 
 function getTileCollider(tileIndex) {

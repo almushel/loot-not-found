@@ -312,13 +312,14 @@ class Door extends GameObject {
 	size = TILE_SIZE;
 	physics = 'static';
 	locked = false;
-	open = false;
+	_open = false;
 
 	constructor(x, y) {
 		super(x, y);
 	}
 
 	onInteract() {
+		if (!this.durability) return;
 		let key = player.items[player.held];
 		if (key && key.constructor.name == Key.name) key.onUse();
 		if (!this.locked) {
@@ -342,27 +343,20 @@ class Door extends GameObject {
 			let overlap = collision.overlap;
 			if (!this.open && (Math.abs(overlap.x) > this.size || Math.abs(collision.overlap.y) > this.size)) {
 				if (overlap = checkCollision(whichObject, this).overlap) {
-					let correction = new Vector2(whichObject.x - this.x, whichObject.y - this.y);
-					if (Math.abs(correction.x) > Math.abs(correction.y)) correction.y = 0;
-					else correction.x = 0;
-				
-					correction = correction.normalize();
-					correction.x *= overlap.x;
-					correction.y *= overlap.y;
-					whichObject.position = whichObject.position.add(correction);
-					whichObject.velocity = whichObject.velocity.add(correction);
-					whichObject.velocity = whichObject.velocity.multiply(FRICTION);
+					let delta = new Vector2(whichObject.x - this.x, whichObject.y - this.y);
+					correctCollision(whichObject, delta, overlap);
 				}
 			}
 		}
 	}
 
 	draw(x, y) {
-		ctx.fillStyle = substColors[WOOD];
+		if (this.open) ctx.fillStyle = averageHexColors([substColors[WOOD], substColors[METAL]]);
+		else ctx.fillStyle = substColors[WOOD];
 		ctx.strokeStyle = substColors[METAL];
 		ctx.beginPath();
 		ctx.rect(x - this.size/2, y - this.size/2, this.size, this.size);
-		if (!this.open) ctx.fill();
+		ctx.fill();
 		ctx.stroke();
 	}
 
@@ -374,6 +368,9 @@ class Door extends GameObject {
 	get interactCollider() {
 		return {x: this.x, y: this.y, type: 'rect', width: this.size * 3, height: this.size * 3};
 	}
+
+	get open() { return this._open || this.durability == 0; }
+	set open(value) { this._open = value; }
 }
 
 class Key extends GameObject {
