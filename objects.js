@@ -200,7 +200,7 @@ class Grenade extends GameObject {
 	onCollision(withObject) {
 		if (withObject == player && !this.armed) {
 			player.interactables.push(this);
-		} else if (this.armed) {
+		} else if (withObject != player && this.armed) {
 			let tile = tileAtCoords(this.x, this.y);
 			for (let y = -this._blastRadius + 1; y < this._blastRadius; y++) {
 				for (let x = -this._blastRadius + 1; x < this._blastRadius; x++) {
@@ -224,6 +224,13 @@ class Grenade extends GameObject {
 					if (e.armed != undefined) e.armed = 1;
 				}
 			});
+
+			if (checkCollision(player, boomCollider).hit) {
+				let delta = new Vector2(player.x - this.x, player.y - this.y);
+					delta.length = (boomCollider.radius / delta.length) * TILE_SIZE / 2;
+				player.velocity = player.velocity.add(delta);
+				player.hp -= 50;
+			}
 
 			zzfx(...SOUND_EFFECTS['boom']);
 				
