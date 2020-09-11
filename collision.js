@@ -83,6 +83,11 @@ function getTileCollider(tileIndex) {
 
 function checkCollision(col1, col2) {
 	let collision = {};
+	if (Math.abs(col1.x - col2.x) > col1.size + col2.size || Math.abs(col1.y - col2.y) > col1.size + col2.size) {
+		collision.hit = false;
+		return collision;
+	}
+	
 	if (col1.type == 'circle') {
 		switch (col2.type) {
 			case 'circle':

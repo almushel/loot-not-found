@@ -65,20 +65,15 @@ function physicsUpdate() {
 		player.rotation = player.rotation.add(cv).normalize();
 		player.velocity = player.velocity.add(cv.multiply(player.acceleration));
 	}
-	player.position = player.position.add(player.velocity);
-	player.velocity.length *= AIR_RESISTANCE;
-	if (player.items[player.held]) player.items[player.held].updateHeld();
+	moveObject(player);
 
-	objectTileCollision(player);
+	if (player.items[player.held]) player.items[player.held].updateHeld();
 	player.interactables.length = 0;
-	for (let object of currentLevel.objects) {
+	
+	for (let i = 0; i < currentLevel.objects.length; i++) {
+		object = currentLevel.objects[i]
 		if (object.velocity.x != 0 || object.velocity.y != 0) {
-			if (object.velocity.length > object.size) continuousTileCollision(object);
-			else {
-				object.position = object.position.add(object.velocity);
-				objectTileCollision(object) 
-			}
-			object.velocity = object.velocity.multiply(FRICTION);
+			moveObject(object);
 			if (Math.abs(object.velocity.x) < 0.01) object.velocity.x = 0;
 			if (Math.abs(object.velocity.y) < 0.01) object.velocity.y = 0;
 			if (Math.abs(object.velocity.x) == 0 && Math.abs(object.velocity.y) == 0) {
@@ -87,14 +82,44 @@ function physicsUpdate() {
 			}
 		}
 
+		//Check object interaction collisions
 		if (pointInView(object.x, object.y)) {
 			let collision = checkCollision(player, object.interactCollider);
 			if (collision.hit) {
 				object.onCollision(player, collision);
 			}
 		}
+
+		//Check collision between objects
+		for (let j = i + 1; j < currentLevel.objects.length; j++) {
+			let otherObject = currentLevel.objects[j];
+			let collision = checkCollision(object, otherObject);
+			if (collision.hit) {
+				if (object.physics == 'dynamic' && otherObject.physics == 'dynamic') {
+					collision.overlap.x /= 2;
+					collision.overlap.y /= 2;
+				}
+
+				let delta = new Vector2(object.x - otherObject.x, object.y - otherObject.y);
+				if (object.physics == 'dynamic') correctCollision(object, delta, collision.overlap);
+				if (otherObject.physics == 'dynamic') {
+					delta.x *= -1;
+					delta.y *= -1;
+					correctCollision(otherObject, delta, collision.overlap);
+				}
+			}
+		}
 	}
 	particles.update();
+}
+
+function moveObject(object) {
+	if (object.velocity.length > object.size) continuousTileCollision(object);
+	else {
+		object.position = object.position.add(object.velocity);
+		objectTileCollision(object)
+	}
+	object.velocity = object.velocity.multiply(AIR_RESISTANCE);
 }
 
 function updateElements() {

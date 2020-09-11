@@ -5,7 +5,7 @@ let player = {
     size: TILE_SIZE,
     held: -1,
     interactables: [],
-    items: [new Hammer, new Grenade, new Balloon, new FireBomb],
+    items: new Array(4),
     position: new Vector2(TILE_SIZE * 2, TILE_SIZE * 2),
     rotation: new Vector2(0, 1),
     velocity: new Vector2(0, 0),
