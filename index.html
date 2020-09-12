@@ -1,11 +1,80 @@
 <html>
 
 <head>
+	<meta name="viewport" content="width=device-width, user-scalable=no">
 	<style>
 		* {
 			background-color: #202020;
 			margin: 0;
 			padding: 0;
+			touch-action: none;
+		}
+
+		.hidden {
+			visibility: hidden;
+		}
+
+		.directionbutton {
+			position: absolute;
+			width: 10vmin;
+			padding-top: 5vmin;
+			padding-bottom: 5vmin;
+			z-index: 2;
+			border: 2px solid rgba(75,75,75,0.5);
+			background-color: rgba(25,25,25,0.5);
+			user-select: none;
+		}
+
+		.directionbutton:active {
+			border: 2px solid rgba(150,150,150,0.5);
+			background-color: rgba(50,50,50,0.5);
+		}
+
+		.gamebutton {
+			position: absolute;
+			font: 2vmin Arial;
+			width: 10vmin;
+			padding-top: 4vmin;
+			padding-bottom: 4vmin;
+			z-index: 2;
+			border: 2px solid rgba(75,75,75,0.5);
+			border-radius: 100%;
+			background-color: rgba(25,25,25,0.5);
+			color: white;
+			text-align: center;
+			user-select: none;
+		}
+
+		.gamebutton:active {
+			border: 2px solid rgba(150,150,150,0.5);
+			background-color: rgba(50,50,50,0.5);
+		}
+
+		.up{
+			left: 15vmin;
+			top: calc(100% - 40vmin);
+		}
+		.right{
+			left: 25vmin;
+			top: calc(100% - 30vmin);
+		}
+		.down{
+			left: 15vmin;
+			top: calc(100% - 20vmin);
+		}
+		.left {
+			left: 5vmin;
+			top: calc(100% - 30vmin);
+		}
+
+		.interactbutton {
+			left: calc(100% - 30vmin);
+			top: calc(100% - 20vmin);
+		}
+
+		.itemsbutton {
+			left: calc(100% - 20vmin);
+			top: calc(100% - 30vmin);
 		}
 	</style>
 	<script src='physics.js'></script>
@@ -26,10 +95,17 @@
 			ctx = canvas.getContext('2d');
 			particles = new ParticleSystem(9 * 16 * 16);
 
+			canvas.addEventListener('touchstart', enableTouch);
 			window.addEventListener('resize', resizeCanvas);
 			window.addEventListener('orientationchange', resizeCanvas);
 			resizeCanvas()
 			setInterval(update, 1000 / 60);
+		}
+
+		function enableTouch() {
+			console.log('Touch Controls Enabled');
+			document.querySelectorAll('.hidden').forEach(e => e.classList.remove('hidden'));
+			canvas.removeEventListener('touchstart', enableTouch);
 		}
 
 		function newGame() {
@@ -140,6 +216,65 @@
 </head>
 
 <body>
+	<div class='directionbutton up hidden'
+		onmousedown=setControl(87,1)
+		ontouchstart=setControl(87,1)
+		ontouchend=setControl(87,0)
+		onmouseup=setControl(87,0)
+		ontouchcancel=setControl(87,0)
+		onmouseleave=setControl(87,0)
+		ontouchleave=setControl(87,0)>
+	</div>
+	<div class='directionbutton right hidden'
+		onmousedown=setControl(68,1)
+		ontouchstart=setControl(68,1)
+		ontouchend=setControl(68,0)
+		onmouseup=setControl(68,0)
+		ontouchcancel=setControl(68,0)
+		onmouseleave=setControl(68,0)
+		ontouchleave=setControl(68,0)>
+	</div>
+	<div class='directionbutton down hidden'
+		onmousedown=setControl(83,1)
+		ontouchstart=setControl(83,1)
+		ontouchend=setControl(83,0)
+		onmouseup=setControl(83,0)
+		ontouchcancel=setControl(83,0)
+		onmouseleave=setControl(83,0)
+		ontouchleave=setControl(83,0)>
+	</div>
+	<div class='directionbutton left hidden'
+		onmousedown=setControl(65,1)
+		ontouchstart=setControl(65,1)
+		ontouchend=setControl(65,0)
+		onmouseup=setControl(65,0)
+		ontouchcancel=setControl(65,0)
+		onmouseleave=setControl(65,0)
+		ontouchleave=setControl(65,0)>
+	</div>
+
+	<div class='gamebutton itemsbutton hidden'
+		onmousedown=setControl(69,1)
+		ontouchstart=setControl(69,1)
+		ontouchend=setControl(69,0)
+		onmouseup=setControl(69,0)
+		ontouchcancel=setControl(69,0)
+		onmouseleave=setControl(69,0)
+		ontouchleave=setControl(69,0)>
+		Items
+	</div>
+
+	<div class='gamebutton interactbutton hidden'
+		onmousedown=setControl(32,1)
+		ontouchstart=setControl(32,1)
+		ontouchend=setControl(32,0)
+		onmouseup=setControl(32,0)
+		ontouchcancel=setControl(32,0)
+		onmouseleave=setControl(32,0)
+		ontouchleave=setControl(32,0)>
+		Interact
+	</div>
+	
 	<canvas id="canvas"></canvas>
 </body>
 
