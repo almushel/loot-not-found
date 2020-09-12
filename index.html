@@ -1,8 +1,11 @@
 <html>
 
 <head>
-	<meta name="viewport" content="width=device-width, user-scalable=no">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
 	<style>
+		:root {
+			--button-width: 15vmin;
+		}
 		* {
 			background-color: #202020;
 			margin: 0;
@@ -16,65 +19,65 @@
 
 		.directionbutton {
 			position: absolute;
-			width: 10vmin;
-			padding-top: 5vmin;
-			padding-bottom: 5vmin;
+			width: var(--button-width);
+			padding-top: calc(var(--button-width) / 2);
+			padding-bottom: calc(var(--button-width) / 2);;
 			z-index: 2;
-			border: 2px solid rgba(75,75,75,0.5);
-			background-color: rgba(25,25,25,0.5);
+			border: 1px solid rgba(75,75,75,0.7);
+			background-color: rgba(25,25,25,0.7);
 			user-select: none;
 		}
 
 		.directionbutton:active {
-			border: 2px solid rgba(150,150,150,0.5);
-			background-color: rgba(50,50,50,0.5);
+			border: 2px solid rgba(150,150,150,0.7);
+			background-color: rgba(50,50,50,0.7);
 		}
 
 		.gamebutton {
 			position: absolute;
 			font: 2vmin Arial;
-			width: 10vmin;
-			padding-top: 4vmin;
-			padding-bottom: 4vmin;
+			width: var(--button-width);
+			padding-top: calc(var(--button-width) / 2 - 1vmin);
+			padding-bottom: calc(var(--button-width) / 2 - 1vmin);;
 			z-index: 2;
-			border: 2px solid rgba(75,75,75,0.5);
+			border: 2px solid rgba(75,75,75,0.7);
 			border-radius: 100%;
-			background-color: rgba(25,25,25,0.5);
+			background-color: rgba(25,25,25,0.7);
 			color: white;
 			text-align: center;
 			user-select: none;
 		}
 
 		.gamebutton:active {
-			border: 2px solid rgba(150,150,150,0.5);
-			background-color: rgba(50,50,50,0.5);
+			border: 2px solid rgba(150,150,150,0.7);
+			background-color: rgba(50,50,50,0.7);
 		}
 
 		.up{
-			left: 15vmin;
-			top: calc(100% - 40vmin);
+			left: calc(var(--button-width) * 1.5);
+			top: calc(100% - var(--button-width) * 4);
 		}
 		.right{
-			left: 25vmin;
-			top: calc(100% - 30vmin);
+			left: calc(var(--button-width) * 2.5);
+			top: calc(100% - var(--button-width) * 3);
 		}
 		.down{
-			left: 15vmin;
-			top: calc(100% - 20vmin);
+			left: calc(var(--button-width) * 1.5);
+			top: calc(100% - var(--button-width) * 2);
 		}
 		.left {
-			left: 5vmin;
-			top: calc(100% - 30vmin);
+			left: calc(var(--button-width) / 2);
+			top: calc(100% - var(--button-width) * 3);
 		}
 
 		.interactbutton {
-			left: calc(100% - 30vmin);
-			top: calc(100% - 20vmin);
+			left: calc(100% - var(--button-width) * 2.5);
+			top: calc(100% - var(--button-width) * 2);
 		}
 
 		.itemsbutton {
-			left: calc(100% - 20vmin);
-			top: calc(100% - 30vmin);
+			left: calc(100% - var(--button-width) * 1.5);
+			top: calc(100% - var(--button-width) * 3);
 		}
 	</style>
 	<script src='physics.js'></script>
@@ -96,6 +99,10 @@
 			particles = new ParticleSystem(9 * 16 * 16);
 
 			canvas.addEventListener('touchstart', enableTouch);
+			window.oncontextmenu = (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+			}
 			window.addEventListener('resize', resizeCanvas);
 			window.addEventListener('orientationchange', resizeCanvas);
 			resizeCanvas()
@@ -217,60 +224,42 @@
 
 <body>
 	<div class='directionbutton up hidden'
-		onmousedown=setControl(87,1)
 		ontouchstart=setControl(87,1)
 		ontouchend=setControl(87,0)
-		onmouseup=setControl(87,0)
 		ontouchcancel=setControl(87,0)
-		onmouseleave=setControl(87,0)
 		ontouchleave=setControl(87,0)>
 	</div>
 	<div class='directionbutton right hidden'
-		onmousedown=setControl(68,1)
 		ontouchstart=setControl(68,1)
 		ontouchend=setControl(68,0)
-		onmouseup=setControl(68,0)
 		ontouchcancel=setControl(68,0)
-		onmouseleave=setControl(68,0)
 		ontouchleave=setControl(68,0)>
 	</div>
 	<div class='directionbutton down hidden'
-		onmousedown=setControl(83,1)
 		ontouchstart=setControl(83,1)
 		ontouchend=setControl(83,0)
-		onmouseup=setControl(83,0)
 		ontouchcancel=setControl(83,0)
-		onmouseleave=setControl(83,0)
 		ontouchleave=setControl(83,0)>
 	</div>
 	<div class='directionbutton left hidden'
-		onmousedown=setControl(65,1)
 		ontouchstart=setControl(65,1)
 		ontouchend=setControl(65,0)
-		onmouseup=setControl(65,0)
 		ontouchcancel=setControl(65,0)
-		onmouseleave=setControl(65,0)
 		ontouchleave=setControl(65,0)>
 	</div>
 
 	<div class='gamebutton itemsbutton hidden'
-		onmousedown=setControl(69,1)
 		ontouchstart=setControl(69,1)
 		ontouchend=setControl(69,0)
-		onmouseup=setControl(69,0)
 		ontouchcancel=setControl(69,0)
-		onmouseleave=setControl(69,0)
 		ontouchleave=setControl(69,0)>
 		Items
 	</div>
 
 	<div class='gamebutton interactbutton hidden'
-		onmousedown=setControl(32,1)
 		ontouchstart=setControl(32,1)
 		ontouchend=setControl(32,0)
-		onmouseup=setControl(32,0)
 		ontouchcancel=setControl(32,0)
-		onmouseleave=setControl(32,0)
 		ontouchleave=setControl(32,0)>
 		Interact
 	</div>
