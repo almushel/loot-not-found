@@ -2,6 +2,7 @@ class GameObject {
 	_durability = 100;
 	size = TILE_SIZE;
 	position = new Vector2(0, 0);
+	rotation = new Vector2(0, 1);
 	velocity = new Vector2(0, 0);
 	type = 'rect';
 	physics = 'dynamic';
@@ -11,6 +12,10 @@ class GameObject {
 		this.position.y = y;
 	}
 
+	//Interaction in player inventory
+	onUse(){}
+
+	//Interaction in game level
 	onInteract() {
 		player.pickup(this);
 	}
@@ -32,8 +37,6 @@ class GameObject {
 		colorText(this.constructor.name, x, y - TILE_SIZE * 2, 'white', '16px Arial');
 
 	}
-	drawHeld() {}
-	updateHeld() {}
 	onCollision(withObject) {}
 
 	get width() { return this.size; }
@@ -78,49 +81,32 @@ class LootPiece extends GameObject{
 }
 
 class Hammer extends GameObject {
-	useTime = 20;
-	timer = 0;
-	rotation = new Vector2(0, 1);
-
 	constructor(x, y) {
 		super(x, y);
 		this.size = TILE_SIZE * 2;
 	}
 
 	onUse() {
-		if (this.timer == 0) {
-			this.timer = 1;
-			return true;
+		let hit = 0;
+		let ix = player.x + player.rotation.x * this.size, iy = player.y + player.rotation.y * this.size;
+		let index = tileAtCoords(ix, iy);
+		let tiles = tilesNearIndex(index);
+		for (let tile of tiles) {
+			let type = currentLevel.getType(0, tile);
+			if (SOLID_SUBST_SET.has(type)) {
+				currentLevel.addLife(0, tile, -25);
+				hit++;
+			}
+		}
+		if (hit) {
+			zzfx(...SOUND_EFFECTS['hammerhit']);
+			this.durability -= 10;
 		}
 	}
 
 	onCollision(withObject) {
 		if (withObject == player) {
 			player.interactables.push(this);
-		}
-	}
-
-	updateHeld() {
-		if (!this.timer) return;
-		this.timer++;
-		if (this.timer == Math.floor(this.useTime / 2)) {
-			let hit = 0;
-			let ix = player.x + player.rotation.x * this.size, iy = player.y + player.rotation.y * this.size;
-			let index = tileAtCoords(ix, iy);
-			let tiles = tilesNearIndex(index);
-			for (let tile of tiles) {
-				let type = currentLevel.getType(0, tile);
-				if (SOLID_SUBST_SET.has(type)) {
-					currentLevel.addLife(0, tile, -25);
-					hit++;
-				}
-			}
-			if (hit) {
-				zzfx(...SOUND_EFFECTS['hammerhit']);
-				this.durability -= 10;
-			}
-		} else if (this.timer == this.useTime + 8) {
-			this.timer = 0;
 		}
 	}
 
@@ -134,19 +120,6 @@ class Hammer extends GameObject {
 		colorRect(-this.size / 3, -this.size / 2, this.size / 1.5, this.size / 4, color);
 		this.drawDurability(0, 0);
 		ctx.translate(-x, -y)
-	}
- 
-	drawHeld() {
-		if (this.timer) {
-			let offset = lerp(Math.PI, 0, smoothStop(clamp(this.timer, 0, this.useTime) / this.useTime, 3));
-			let angle = player.rotation.rotate(offset).angle;
-			
-			ctx.translate(player.x, player.y);
-			ctx.rotate(angle + Math.PI/2);
-			this.draw(0, -this.size/2)
-			ctx.rotate(-(angle + Math.PI/2));
-			ctx.translate(-player.x, -player.y);
-		}
 	}
 }
 
@@ -178,10 +151,6 @@ class FireBomb extends GameObject {
 		const capHeight = this.size/3;
 		colorRect(x - this.size/4, y - this.size/2, this.size/2, capHeight, 'red');
 		colorRect(x - this.size/4, y - this.size/2 + capHeight, this.size/2, this.size - capHeight, 'olive');
-	}
-
-	drawHeld() {
-		return;
 	}
 
 	get width() { return this.size/2; }

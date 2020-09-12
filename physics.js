@@ -61,13 +61,14 @@ class Vector2 {
 function physicsUpdate() {
 	updateElements();
 	let cv = control();
-	if (cv) {
+	if (cv && cv.length) {
 		player.rotation = player.rotation.add(cv).normalize();
 		player.velocity = player.velocity.add(cv.multiply(player.acceleration));
+		player.sway++;
 	}
 	moveObject(player);
 
-	if (player.items[player.held]) player.items[player.held].updateHeld();
+	player.updateHeld();
 	player.interactables.length = 0;
 	
 	for (let i = 0; i < currentLevel.objects.length; i++) {

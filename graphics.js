@@ -14,6 +14,14 @@ function colorRect(x, y, w, h, color, center) {
     ctx.fillRect(x + xOffset, y + yOffset, w, h);
 }
 
+function colorCircle(x, y, r, color, fill, stroke) {
+    ctx.fillStyle = color;
+    ctx.beginPath()
+    ctx.arc(x, y, r, 0, Math.PI * 2, false);
+    if (fill) ctx.fill();
+    if (stroke) ctx.stroke();
+}
+
 function setShadow(color, blur, oX, oY) {
     if (color) ctx.shadowColor = color;
     if (blur) ctx.shadowBlur = blur; 

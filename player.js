@@ -1,5 +1,8 @@
 let player = {
     _hp: 100,
+    _sway: 0,
+    useTime: 20,
+	swingTimer: 0,
     loot: 0,
     color: '#4060C0',
     size: TILE_SIZE,
@@ -9,6 +12,7 @@ let player = {
     position: new Vector2(TILE_SIZE * 2, TILE_SIZE * 2),
     rotation: new Vector2(0, 1),
     velocity: new Vector2(0, 0),
+    swingRotation: new Vector2(0, 1),
     acceleration: TILE_SIZE / 60,
     type: 'circle', physics: 'dynamic',
     reset() {
@@ -26,7 +30,7 @@ let player = {
     pickup(item) {
         for (let i = 0; i < this.items.length; i++) {
             if (!this.items[i]) {
-                item.timer = 0;
+                item.swingTimer = 0;
                 this.items[i] = item;
                 this.held = i;
         
@@ -54,13 +58,26 @@ let player = {
     },
     use() { //Use current held item
         let heldItem = this.items[this.held];
-        if (heldItem && (heldItem.durability == undefined || heldItem.durability > 0))  {
-            if (heldItem.onUse()) zzfx(...[,,440,.01,,,,,,,220,.012,,,60]);
+        if (!this.swingTimer && heldItem && (heldItem.durability == undefined || heldItem.durability > 0))  {
+            this.swingTimer = 1;
+            zzfx(...SOUND_EFFECTS['use']);
         }
     },
     tileEffect(type) {
        if (type == FIRE) this.hp -= 0.125;
     },
+    updateHeld() {
+        let item = this.items[this.held];
+        if (this.swingTimer > 0) {
+            this.swingTimer++;
+            if (this.swingTimer == Math.floor(this.useTime / 2)) {
+                item.onUse()
+            } else if (this.swingTimer == this.useTime + 8) {
+                this.swingTimer = 0;
+                this.swingRotation.x = 0, this.swingRotation.y = 0;
+            }
+        }
+	},
     draw() {
         let color = this.isDead ? '#203060' : this.color;
         let tileColors = nearTileColors(1, this.x, this.y);
@@ -68,14 +85,22 @@ let player = {
         if (tileColors.length) color = averageHexColors(tileColors.concat(new Array(tileColors.length + emptyTiles).fill(color)));
 
         setShadow('black', 2);
+
+        const armOffset = this.size - this.size/4;
+        let armAngle = this.rotation.rotate(Math.PI/2);
+        armAngle = armAngle.multiply(this.size);
+        armAngle = armAngle.add(this.rotation.multiply(Math.sin(this.sway/10) * armOffset));
         
-        if (this.items[this.held]) this.items[this.held].drawHeld();
-
-        ctx.fillStyle = color;
-
-        ctx.beginPath()
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
-        ctx.fill();
+        //Left arm
+        colorCircle(this.x - armAngle.x, this.y  - armAngle.y, this.size/2, color, true);
+        //Right arm
+        if (this.swingTimer) {
+            armAngle = this.swingRotation.multiply(this.size);
+        }
+        colorCircle(this.x + armAngle.x, this.y  + armAngle.y, this.size/2, color, true);
+        this.drawHeld();
+        //Body
+        colorCircle(this.x, this.y, this.size, color, true);
 
         resetShadow();
 
@@ -89,6 +114,19 @@ let player = {
             item.drawLabel(item.x, item.y);
         }
     },
+    drawHeld() {
+        let item = this.items[this.held];
+		if (item && this.swingTimer) {
+			let offset = lerp(Math.PI, 0, smoothStop(clamp(this.swingTimer, 0, this.useTime) / this.useTime, 3));
+			this.swingRotation = this.rotation.rotate(offset);
+			
+			ctx.translate(this.x, this.y);
+			ctx.rotate(this.swingRotation.angle + Math.PI/2);
+			item.draw(0, -item.size/2 - player.size/2);
+			ctx.rotate(-(this.swingRotation.angle + Math.PI/2));
+			ctx.translate(-this.x, -this.y);
+		}
+	},
     die() {
         this.isDead = true;
         let dIndex = tileAtCoords(this.position.x, this.position.y);
@@ -103,4 +141,9 @@ let player = {
         this._hp = clamp(val, 0, 100);
         if (this._hp == 0 && !this.isDead) this.die();
     },
+    get sway() {return this._sway; },
+    set sway(value) {
+        this._sway = value;
+        if (this._sway > 120) this._sway = 0;
+    }
 }
